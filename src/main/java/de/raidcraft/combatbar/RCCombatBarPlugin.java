@@ -51,7 +51,7 @@ public class RCCombatBarPlugin extends BasePlugin {
         public boolean enableMenuItem = true;
         @Setting("menu.item")
         @Comment("The name of the item that should be placed in the inventory of the player to open the hotbar menu.")
-        public String menuItem = "minecraft:nether_star";
+        public String menuItem = "nether_star";
         @Setting("menu.items-slot")
         @Comment("The slot the menu item should be placed in. See https://minecraft.gamepedia.com/Inventory for the slot ids.")
         public int menuItemSlot = 8;

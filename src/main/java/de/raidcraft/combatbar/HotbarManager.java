@@ -42,7 +42,7 @@ public class HotbarManager {
 
         EnchantGlow.addGlow(itemStack);
         ItemMeta itemMeta = itemStack.getItemMeta();
-        itemMeta.setDisplayName(ChatColor.GOLD + "-=[ " + ChatColor.DARK_BLUE + "Hotbar Menü" + ChatColor.GOLD + " ]=-");
+        itemMeta.setDisplayName(ChatColor.GOLD + "-=[ " + ChatColor.AQUA + "Hotbar Menü" + ChatColor.GOLD + " ]=-");
 
         itemMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         itemMeta.addItemFlags(ItemFlag.HIDE_DESTROYS);
@@ -53,7 +53,7 @@ public class HotbarManager {
 
         ArrayList<String> lore = new ArrayList<>();
         lore.add("");
-        lore.add(ChatColor.GREEN + ">> Öffnet das Hotbar Menü mit einem Rechtsklick. <<");
+        lore.add(ChatColor.GREEN + "Rechtsklick: Öffnet das Hotbar Menü.");
 
         itemMeta.setLore(lore);
 

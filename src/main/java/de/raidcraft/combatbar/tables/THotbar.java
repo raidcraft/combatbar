@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -18,17 +17,17 @@ public class THotbar {
     @Id
     private int id;
 
-    @NotNull
-    private int ownerId;
+    @NotEmpty
+    private String playerId;
 
     @Column(nullable = false, length = 32)
     @NotEmpty
     private String name;
 
     @NotNull
-    private int index = 0;
+    private int hotbarIndex = 0;
 
     @OneToMany(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "hotbar_id")
-    private List<THotbarSlot> hotbarSlots = new ArrayList<>();
+    private List<THotbarSlot> hotbarSlots;
 }

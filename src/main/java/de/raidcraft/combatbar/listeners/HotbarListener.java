@@ -8,10 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 
 public class HotbarListener implements Listener {
@@ -30,13 +27,23 @@ public class HotbarListener implements Listener {
     @EventHandler()
     public void onHotbarMenuSelect(PlayerItemHeldEvent event) {
 
-        event.getPlayer().sendMessage("Old Slot: " + event.getPreviousSlot() + " | New Slot: " + event.getNewSlot());
-        if (event.getPreviousSlot() == 1 && event.getNewSlot() == 2)
+        if (event.getPreviousSlot() == event.getNewSlot()) return;
+
+//        event.getPlayer().sendMessage("Old Slot: " + event.getPreviousSlot() + " | New Slot: " + event.getNewSlot());
+        if (event.getPreviousSlot() == 0 && event.getNewSlot() > 1 && event.getNewSlot() < 8) {
+            event.getPlayer().sendMessage("Casted Skill on Slot: " + event.getNewSlot());
             event.setCancelled(true);
-        if (event.getPreviousSlot() == 8 && event.getNewSlot() == 7)
+        }
+
+        if (event.getPlayer().isSneaking() && event.getPreviousSlot() == config.menuItemSlot) {
+            // cycle through the hotbars
+            if (event.getNewSlot() < event.getPreviousSlot()) {
+                event.getPlayer().sendMessage("Cycling to next hotbar.");
+            } else if (event.getNewSlot() > event.getPreviousSlot() || event.getNewSlot() == 0) {
+                event.getPlayer().sendMessage("Cycling to previous hotbar.");
+            }
             event.setCancelled(true);
-        if (event.getPreviousSlot() == 0 && event.getNewSlot() > 2 && event.getNewSlot() < 8)
-            event.setCancelled(true);
+        }
     }
 
     @EventHandler
@@ -46,6 +53,15 @@ public class HotbarListener implements Listener {
             event.setCancelled(true);
             if (event.getClick() == ClickType.RIGHT)
                 getModule().getHotbarManager().openHotbarMenu((Player) event.getWhoClicked());
+        }
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+
+        if (config.enableMenuItem && event.getPlayer().getInventory().getHeldItemSlot() == config.menuItemSlot) {
+            event.setCancelled(true);
+            getModule().getHotbarManager().openHotbarMenu(event.getPlayer());
         }
     }
 
