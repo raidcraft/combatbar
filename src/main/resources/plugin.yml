@@ -1,0 +1,8 @@
+main: de.raidcraft.combatbar.RCCombatBarPlugin
+name: RCCombatBar
+version: ${project.version}#${build.number}
+description: Implementation of Combat Bar.
+author: Silthus
+website: http://www.raid-craft.de
+depend: [RaidCraft-API]
+database: false
