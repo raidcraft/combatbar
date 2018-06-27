@@ -1,5 +1,6 @@
 package de.raidcraft.combatbar;
 
+import de.raidcraft.RaidCraft;
 import de.raidcraft.api.BasePlugin;
 import de.raidcraft.api.config.Comment;
 import de.raidcraft.api.config.ConfigurationBase;
@@ -27,7 +28,10 @@ public class RCCombatBarPlugin extends BasePlugin {
     @Override
     public void enable() {
         config = configure(new LocalConfiguration(this));
+
         hotbarManager = new HotbarManager(this);
+        RaidCraft.registerComponent(HotbarManager.class, hotbarManager);
+
         registerEvents(new HotbarListener(this));
     }
 
@@ -55,6 +59,12 @@ public class RCCombatBarPlugin extends BasePlugin {
         @Setting("menu.items-slot")
         @Comment("The slot the menu item should be placed in. See https://minecraft.gamepedia.com/Inventory for the slot ids.")
         public int menuItemSlot = 8;
+        @Setting("hotbar.base-slot")
+        @Comment("The base slot of the hotbar. The hotbar will fire an interact event when the selected slot will differ from the given slot.")
+        public int baseSlotIndex = 0;
+        @Setting("hotbar.indicies")
+        @Comment("The inventory indicies hotbar slots can occupy. Make sure to leave one empty index from the baseHotbarSlot to avoid scroll wheel problems. Do not include the menuItemSlot!")
+        public int[] hotbarIndicies = new int[]{2, 3, 4, 5, 6, 7};
 
         public LocalConfiguration(RCCombatBarPlugin plugin) {
 

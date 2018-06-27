@@ -1,5 +1,8 @@
 package de.raidcraft.combatbar;
 
+import de.raidcraft.api.Component;
+import de.raidcraft.combatbar.api.Hotbar;
+import de.raidcraft.combatbar.api.HotbarHolder;
 import de.raidcraft.util.items.EnchantGlow;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
@@ -10,15 +13,26 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
+import java.util.*;
 
-public class HotbarManager {
+public class HotbarManager implements Component {
 
     @Getter
     private final RCCombatBarPlugin module;
+    private final Map<UUID, HotbarHolder> hotbarHolders = new HashMap<>();
 
     public HotbarManager(RCCombatBarPlugin module) {
         this.module = module;
+    }
+
+    /**
+     * Gets the active {@link Hotbar} of the given player.
+     *
+     * @param player to get hotbar for
+     * @return active {@link Hotbar}
+     */
+    public Optional<Hotbar> getActiveHotbar(Player player) {
+        return Optional.ofNullable(this.hotbarHolders.get(player.getUniqueId())).flatMap(HotbarHolder::getActiveHotbar);
     }
 
     public void addAllHotbars() {
