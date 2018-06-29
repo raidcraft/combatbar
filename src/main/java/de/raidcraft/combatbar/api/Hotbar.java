@@ -1,6 +1,8 @@
 package de.raidcraft.combatbar.api;
 
 import lombok.Data;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 
@@ -113,6 +115,38 @@ public class Hotbar {
     }
 
     public void onInteract(PlayerInteractEvent event) {
+        getHotbarSlot(event.getPlayer().getInventory().getHeldItemSlot()).ifPresent(slot -> {
+            switch (event.getAction()) {
+                case LEFT_CLICK_AIR:
+                case LEFT_CLICK_BLOCK:
+                    slot.onLeftClickInteract(event.getPlayer());
+                    break;
+                case RIGHT_CLICK_AIR:
+                case RIGHT_CLICK_BLOCK:
+                    slot.onRightClickInteract(event.getPlayer());
+                    break;
+            }
+        });
+    }
 
+    public void onInventoryClick(InventoryClickEvent event) {
+        getHotbarSlot(event.getSlot()).ifPresent(slot -> {
+
+            Player player = (Player) event.getWhoClicked();
+            switch (event.getClick()) {
+                case RIGHT:
+                    slot.onInventoryRightClick(player);
+                    break;
+                case LEFT:
+                    slot.onInventoryLeftClick(player);
+                    break;
+                case MIDDLE:
+                    slot.onInventoryMiddleClick(player);
+                    break;
+                case DOUBLE_CLICK:
+                    slot.onInventoryDoubleClick(player);
+                    break;
+            }
+        });
     }
 }

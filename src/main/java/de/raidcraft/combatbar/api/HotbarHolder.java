@@ -5,6 +5,8 @@ import lombok.Data;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 
 import java.util.ArrayList;
@@ -48,5 +50,21 @@ public class HotbarHolder implements Listener {
             getActiveHotbar().ifPresent(Hotbar::activate);
             event.setCancelled(true);
         }
+    }
+
+    @EventHandler
+    public void onInteract(PlayerInteractEvent event) {
+
+        if (!event.getPlayer().equals(event.getPlayer())) return;
+
+        getActiveHotbar().ifPresent(hotbar -> hotbar.onInteract(event));
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+
+        if (!event.getWhoClicked().equals(getPlayer())) return;
+
+        getActiveHotbar().ifPresent(hotbar -> hotbar.onInventoryClick(event));
     }
 }

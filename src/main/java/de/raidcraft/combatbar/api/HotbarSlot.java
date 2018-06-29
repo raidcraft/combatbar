@@ -34,7 +34,7 @@ public abstract class HotbarSlot {
      *
      * @param player that right clicked
      */
-    public void onRightClick(Player player) {
+    public void onRightClickInteract(Player player) {
     }
 
     /**
@@ -45,6 +45,46 @@ public abstract class HotbarSlot {
      *
      * @param player that left clicked
      */
-    public void onLeftClick(Player player) {
+    public void onLeftClickInteract(Player player) {
+    }
+
+    /**
+     * Called when the player has the inventory open and right clicks the slot.
+     * <p>
+     * Override and implement your logic.
+     *
+     * @param player who clicked
+     */
+    public void onInventoryRightClick(Player player) {
+    }
+
+    /**
+     * Called when the player has the inventory open and left clicks the slot.
+     * <p>
+     * Override and implement your logic.
+     *
+     * @param player who clicked
+     */
+    public void onInventoryLeftClick(Player player) {
+    }
+
+    /**
+     * Called when the player has the inventory open and double clicks the slot.
+     * <p>
+     * Override and implement your logic.
+     *
+     * @param player who clicked
+     */
+    public void onInventoryDoubleClick(Player player) {
+    }
+
+    /**
+     * Called when the player has the inventory open and middle clicks the slot.
+     * <p>
+     * Override and implement your logic.
+     *
+     * @param player who clicked
+     */
+    public void onInventoryMiddleClick(Player player) {
     }
 }
