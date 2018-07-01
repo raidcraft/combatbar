@@ -1,11 +1,15 @@
 package de.raidcraft.combatbar.api;
 
-import de.raidcraft.combatbar.RCCombatBarPlugin;
+import com.avaje.ebean.EbeanServer;
+import de.raidcraft.RaidCraft;
+import de.raidcraft.combatbar.RCHotbarPlugin;
+import de.raidcraft.combatbar.tables.THotbarHolder;
 import lombok.Data;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 
@@ -17,13 +21,25 @@ import java.util.Optional;
 public class HotbarHolder implements Listener {
 
     private final Player player;
-    private final RCCombatBarPlugin.LocalConfiguration config;
     private final List<Hotbar> hotbars = new ArrayList<>();
+    private int databaseId = -1;
     private int activeHotbar = 0;
+
+    public Optional<Integer> getDatabaseId() {
+        return databaseId < 0 ? Optional.empty() : Optional.of(databaseId);
+    }
+
+    public int getActiveHotbarSlot() {
+        return this.activeHotbar;
+    }
 
     public Optional<Hotbar> getActiveHotbar() {
         if (this.activeHotbar < 0 || this.hotbars.size() < this.activeHotbar) return Optional.empty();
         return Optional.ofNullable(this.hotbars.get(this.activeHotbar));
+    }
+
+    public void addHotbar(Hotbar hotbar) {
+        this.hotbars.add(hotbar);
     }
 
     @EventHandler()
@@ -34,22 +50,23 @@ public class HotbarHolder implements Listener {
 
         getActiveHotbar().ifPresent(hotbar -> hotbar.onHotbarSlotChange(event));
 
+        if (hotbars.size() < 2) return;
+
         // handle hotbar cylcing
-        if (event.getPlayer().isSneaking() && event.getPreviousSlot() == config.menuItemSlot) {
-            getActiveHotbar().ifPresent(Hotbar::deactivate);
-            if (event.getNewSlot() < event.getPreviousSlot()) {
-                this.activeHotbar++;
-                if (this.activeHotbar >= this.hotbars.size()) this.activeHotbar = -1;
-            } else if (event.getNewSlot() > event.getPreviousSlot() || event.getNewSlot() == 0) {
-                if (this.activeHotbar < 0) {
-                    this.activeHotbar = this.hotbars.size() - 1;
-                } else {
+        getActiveHotbar().ifPresent(hotbar -> {
+            if (event.getPlayer().isSneaking() && event.getPreviousSlot() == hotbar.getMenuSlotIndex()) {
+                getActiveHotbar().ifPresent(Hotbar::deactivate);
+                if (event.getNewSlot() < event.getPreviousSlot()) {
+                    this.activeHotbar++;
+                    if (this.activeHotbar >= this.hotbars.size()) this.activeHotbar = 0;
+                } else if (event.getNewSlot() > event.getPreviousSlot() || event.getNewSlot() == 0) {
                     this.activeHotbar--;
+                    if (this.activeHotbar < 0) this.activeHotbar = this.hotbars.size() - 1;
                 }
+                getActiveHotbar().ifPresent(Hotbar::activate);
+                event.setCancelled(true);
             }
-            getActiveHotbar().ifPresent(Hotbar::activate);
-            event.setCancelled(true);
-        }
+        });
     }
 
     @EventHandler
@@ -66,5 +83,25 @@ public class HotbarHolder implements Listener {
         if (!event.getWhoClicked().equals(getPlayer())) return;
 
         getActiveHotbar().ifPresent(hotbar -> hotbar.onInventoryClick(event));
+    }
+
+    @EventHandler
+    public void onItemDropEvent(PlayerDropItemEvent event) {
+
+        int heldItemSlot = event.getPlayer().getInventory().getHeldItemSlot();
+        getActiveHotbar().filter(hotbar -> hotbar.getIndicies().contains(heldItemSlot)
+                || heldItemSlot == hotbar.getMenuSlotIndex())
+                .ifPresent(hotbar -> event.setCancelled(true));
+    }
+
+    public void save() {
+        EbeanServer database = RaidCraft.getDatabase(RCHotbarPlugin.class);
+        getDatabaseId().map(id -> database.find(THotbarHolder.class, id))
+                .ifPresent(holder -> {
+                    holder.setActiveHotbar(getActiveHotbarSlot());
+                    database.save(holder);
+                });
+
+        getHotbars().forEach(Hotbar::save);
     }
 }

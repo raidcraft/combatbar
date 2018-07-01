@@ -1,15 +1,14 @@
 package de.raidcraft.combatbar.tables;
 
-import com.avaje.ebean.validation.NotEmpty;
-import com.avaje.ebean.validation.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "rc_combatbars")
+@Table(name = "rc_hotbars")
 @Getter
 @Setter
 public class THotbar {
@@ -17,17 +16,20 @@ public class THotbar {
     @Id
     private int id;
 
-    @NotEmpty
-    private String playerId;
-
-    @Column(nullable = false, length = 32)
-    @NotEmpty
+    @Column(length = 128)
     private String name;
 
-    @NotNull
-    private int hotbarIndex = 0;
+    @Column(length = 128)
+    private String displayName;
+
+    @ManyToOne
+    private THotbarHolder holder;
+
+    private int position = 0;
+
+    private boolean active = false;
 
     @OneToMany(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "hotbar_id")
-    private List<THotbarSlot> hotbarSlots;
+    private List<THotbarSlot> hotbarSlots = new ArrayList<>();
 }

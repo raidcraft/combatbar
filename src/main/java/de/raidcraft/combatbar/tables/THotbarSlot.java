@@ -1,16 +1,14 @@
 package de.raidcraft.combatbar.tables;
 
-import com.avaje.ebean.validation.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "rc_combatbar_slots")
+@Table(name = "rc_hotbars_slots")
 @Getter
 @Setter
 public class THotbarSlot {
@@ -18,9 +16,18 @@ public class THotbarSlot {
     @Id
     private int id;
 
-    @NotNull
-    private int slot = 0;
+    @Column(length = 128)
+    private String name;
+
+    @Column(length = 128)
+    private String item;
+
+    private int position = -1;
 
     @ManyToOne
     private THotbar hotbar;
+
+    @OneToMany(cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "slot_id")
+    private List<THotbarSlotData> data = new ArrayList<>();
 }

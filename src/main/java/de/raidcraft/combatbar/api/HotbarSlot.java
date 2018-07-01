@@ -1,20 +1,98 @@
 package de.raidcraft.combatbar.api;
 
+import com.avaje.ebean.EbeanServer;
+import de.raidcraft.RaidCraft;
+import de.raidcraft.combatbar.RCHotbarPlugin;
+import de.raidcraft.combatbar.tables.THotbar;
+import de.raidcraft.combatbar.tables.THotbarSlot;
+import de.raidcraft.combatbar.tables.THotbarSlotData;
 import lombok.Getter;
+import lombok.Setter;
+import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Optional;
+
+/**
+ * A Hotbar slot can be attached to hotbar and therefor be useable.
+ * A Hotbar slot can also exist without a hotbar to allow displaying it in a configuration menu.
+ */
 public abstract class HotbarSlot {
 
+    @Getter
+    @Setter
+    private String name;
+
+    @Setter
+    private int databaseId = -1;
     /**
      * The item that will be displayed in the hotbar slot.
      */
     @Getter
-    private final ItemStack item;
+    @Setter
+    private ItemStack item = new ItemStack(Material.STRUCTURE_VOID);
+    @Getter
+    @Setter
+    private int index = -1;
+    @Setter
+    @Getter
+    private boolean saveItem = true;
+    /**
+     * The {@link Hotbar} this slot is attached to.
+     * Can be null if the slot has not been attached to a hotbar.
+     */
+    @Getter
+    private Hotbar hotbar;
 
-    public HotbarSlot(ItemStack item) {
-        this.item = item;
+    public Optional<Hotbar> getHotbar() {
+        return Optional.ofNullable(hotbar);
     }
+
+    public final void attach(Hotbar hotbar) {
+        this.hotbar = hotbar;
+        hotbar.getInventory().setItem(getIndex(), getItem());
+    }
+
+    /**
+     * Called when the hotbar slot is attached to the {@link Hotbar}.
+     * <p>
+     * Override and implement your logic.
+     *
+     * @param hotbar the slot is attached to.
+     */
+    public void onAttach(Hotbar hotbar) {
+
+    }
+
+    public final void detach() {
+        EbeanServer database = RaidCraft.getDatabase(RCHotbarPlugin.class);
+        getHotbar().ifPresent(hotbar -> hotbar.getInventory().setItem(getIndex(), new ItemStack(Material.AIR)));
+        getDatabaseId().map(id -> database.find(THotbarSlot.class, id)).ifPresent(database::delete);
+        this.hotbar = null;
+    }
+
+    public final Optional<Integer> getDatabaseId() {
+        return databaseId < 0 ? Optional.empty() : Optional.of(databaseId);
+    }
+
+    /**
+     * Will be called when all needed data is available and the hotbarslot should be loaded.
+     * After loading the slot will be displayed to the player and is active.
+     *
+     * @param config to load data from
+     */
+    public abstract void load(ConfigurationSection config);
+
+    /**
+     * Called when the {@link HotbarSlot} is saved.
+     * Set your data that you want to save in the {@link ConfigurationSection}.
+     *
+     * @param config to save data to
+     */
+    public abstract void saveData(ConfigurationSection config);
 
     /**
      * Called when a player selects the hotbar slot directly by pressing the number keys.
@@ -86,5 +164,32 @@ public abstract class HotbarSlot {
      * @param player who clicked
      */
     public void onInventoryMiddleClick(Player player) {
+    }
+
+    protected final void save() {
+        EbeanServer database = RaidCraft.getDatabase(RCHotbarPlugin.class);
+        MemoryConfiguration config = new MemoryConfiguration();
+        saveData(config);
+        THotbarSlot slot = getDatabaseId().map(id -> database.find(THotbarSlot.class, id))
+                .orElse(new THotbarSlot());
+
+        getHotbar().flatMap(Hotbar::getDatabaseId)
+                .map(id -> database.find(THotbar.class, id))
+                .ifPresent(slot::setHotbar);
+
+        slot.setName(getName());
+        if (isSaveItem()) slot.setItem(RaidCraft.getItemIdString(getItem()));
+        slot.setPosition(getIndex());
+
+        slot.getData().clear();
+        database.save(slot);
+
+        for (String key : config.getKeys(false)) {
+            THotbarSlotData data = new THotbarSlotData();
+            data.setDataKey(key);
+            data.setDataValue(config.get(key, "").toString());
+            data.setSlot(slot);
+            database.save(data);
+        }
     }
 }
