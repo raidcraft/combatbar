@@ -59,7 +59,7 @@ public class HotbarManager implements Component {
             return;
         }
 
-        String hotbarName = (plugin.getName() + "." + hotbarClass.getAnnotation(HotbarName.class).value());
+        String hotbarName = hotbarClass.getAnnotation(HotbarName.class).value();
 
         if (hotbarFactories.containsKey(hotbarName)) {
             getPlugin().getLogger().warning("Duplicate Hotbar Registration with displayName: " + hotbarName);
@@ -78,7 +78,7 @@ public class HotbarManager implements Component {
     public void registerHotbarSlotType(Plugin plugin, Class<? extends HotbarSlot> hotbarSlotClass) {
 
         getHotbarSlotName(hotbarSlotClass)
-                .map(name -> plugin.getName() + "." + name)
+//                .map(name -> plugin.getName() + "." + name)
                 .ifPresent(name -> registerHotbarSlot(name, hotbarSlotClass));
     }
 

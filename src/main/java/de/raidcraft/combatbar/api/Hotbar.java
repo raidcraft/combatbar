@@ -120,7 +120,7 @@ public class Hotbar {
      * @param index to remove slot from.
      * @return the removed {@link HotbarSlot} if it existed.
      */
-    public final Optional<HotbarSlot> clearHotbarSlot(int index) {
+    public final Optional<HotbarSlot> removeHotbarSlot(int index) {
         HotbarSlot removedSlot = this.slots.remove(index);
         if (removedSlot != null) removedSlot.detach();
         save();
@@ -147,7 +147,6 @@ public class Hotbar {
     public void deactivate() {
         if (!isActive()) return;
         this.active = false;
-        getSlots().values().forEach(HotbarSlot::detach);
         save();
         getIndicies().forEach(index -> getInventory().clear(index));
     }
@@ -162,6 +161,7 @@ public class Hotbar {
     }
 
     public void onInteract(PlayerInteractEvent event) {
+        if (!isActive()) return;
         getHotbarSlot(getActiveItemSlot()).ifPresent(slot -> {
             switch (event.getAction()) {
                 case LEFT_CLICK_AIR:
@@ -174,9 +174,15 @@ public class Hotbar {
                     break;
             }
         });
+
+        if (getIndicies().contains(getActiveItemSlot())) {
+            event.setCancelled(true);
+        }
     }
 
     public void onInventoryClick(InventoryClickEvent event) {
+        if (!isActive()) return;
+
         getHotbarSlot(event.getSlot()).ifPresent(slot -> {
 
             Player player = (Player) event.getWhoClicked();

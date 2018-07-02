@@ -53,6 +53,7 @@ public abstract class HotbarSlot {
 
     public final void attach(Hotbar hotbar) {
         this.hotbar = hotbar;
+        onAttach(hotbar);
         hotbar.getInventory().setItem(getIndex(), getItem());
     }
 
@@ -64,11 +65,9 @@ public abstract class HotbarSlot {
      * @param hotbar the slot is attached to.
      */
     public void onAttach(Hotbar hotbar) {
-
     }
 
     public final void detach() {
-        EbeanServer database = RaidCraft.getDatabase(RCHotbarPlugin.class);
         getHotbar().ifPresent(hotbar -> hotbar.getInventory().setItem(getIndex(), new ItemStack(Material.AIR)));
         delete();
         this.hotbar = null;
@@ -183,9 +182,14 @@ public abstract class HotbarSlot {
 
         slot.getData().clear();
         database.save(slot);
+        setDatabaseId(slot.getId());
 
         for (String key : config.getKeys(false)) {
-            THotbarSlotData data = new THotbarSlotData();
+            THotbarSlotData data = database.find(THotbarSlotData.class).where()
+                    .eq("slot_id", slot.getId())
+                    .eq("data_key", key)
+                    .findUnique();
+            if (data == null) data = new THotbarSlotData();
             data.setDataKey(key);
             data.setDataValue(config.get(key, "").toString());
             data.setSlot(slot);

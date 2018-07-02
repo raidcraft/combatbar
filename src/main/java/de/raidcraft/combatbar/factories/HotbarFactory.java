@@ -47,7 +47,7 @@ public final class HotbarFactory<T extends Hotbar> {
         dbEntry.getHotbarSlots().forEach(slot -> {
             hotbarManager.getHotbarSlotFactory(slot.getName())
                     .map(factory -> factory.create(slot))
-                    .ifPresent(hotbar::addHotbarSlot);
+                    .ifPresent(createdSlot -> hotbar.setHotbarSlot(createdSlot.getIndex(), createdSlot));
         });
     }
 

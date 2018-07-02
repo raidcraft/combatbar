@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -62,7 +63,7 @@ public class HotbarHolder implements Listener {
         return getPlayer().getInventory();
     }
 
-    public final int getActiveItemSlot() {
+    public final int getHeldItemSlot() {
         return getInventory().getHeldItemSlot();
     }
 
@@ -81,6 +82,7 @@ public class HotbarHolder implements Listener {
     public void enable() {
         if (isEnabled()) return;
         this.enabled = true;
+        getActiveHotbar().ifPresent(Hotbar::activate);
         if (!getMenuSlotItem().isSimilar(getInventory().getItem(getMenuSlotIndex()))) {
             InventoryUtils.setAndDropOrAddItem(getPlayer(), getMenuSlotItem(), getMenuSlotIndex());
         }
@@ -97,6 +99,7 @@ public class HotbarHolder implements Listener {
     @EventHandler()
     public void onSlotChange(PlayerItemHeldEvent event) {
 
+        if (!isEnabled()) return;
         if (event.getPreviousSlot() == event.getNewSlot()) return;
         if (!event.getPlayer().equals(getPlayer())) return;
 
@@ -121,18 +124,17 @@ public class HotbarHolder implements Listener {
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
 
+        if (!isEnabled()) return;
         if (!event.getPlayer().equals(event.getPlayer())) return;
 
-        if (getActiveItemSlot() == getMenuSlotIndex()) {
+        if (getHeldItemSlot() == getMenuSlotIndex()) {
+            event.setCancelled(true);
             switch (event.getAction()) {
                 case LEFT_CLICK_AIR:
-                case LEFT_CLICK_BLOCK:
                 case RIGHT_CLICK_AIR:
-                case RIGHT_CLICK_BLOCK:
                     getMenuItemAction().ifPresent(consumer -> consumer.accept(this));
                     break;
             }
-            event.setCancelled(true);
             return;
         }
 
@@ -142,7 +144,9 @@ public class HotbarHolder implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
 
+        if (!isEnabled()) return;
         if (!event.getWhoClicked().equals(getPlayer())) return;
+        if (event.getSlotType() != InventoryType.SlotType.QUICKBAR) return;
         if (isHotbarSlot(event.getSlot())) event.setCancelled(true);
 
         getActiveHotbar().ifPresent(hotbar -> hotbar.onInventoryClick(event));
@@ -151,7 +155,8 @@ public class HotbarHolder implements Listener {
     @EventHandler
     public void onItemDropEvent(PlayerDropItemEvent event) {
 
-        if (isHotbarSlot(getActiveHotbarSlot())) event.setCancelled(true);
+        if (!isEnabled()) return;
+        if (isHotbarSlot(getHeldItemSlot())) event.setCancelled(true);
     }
 
     private boolean isHotbarSlot(int index) {
