@@ -70,7 +70,7 @@ public abstract class HotbarSlot {
     public final void detach() {
         EbeanServer database = RaidCraft.getDatabase(RCHotbarPlugin.class);
         getHotbar().ifPresent(hotbar -> hotbar.getInventory().setItem(getIndex(), new ItemStack(Material.AIR)));
-        getDatabaseId().map(id -> database.find(THotbarSlot.class, id)).ifPresent(database::delete);
+        delete();
         this.hotbar = null;
     }
 
@@ -191,5 +191,11 @@ public abstract class HotbarSlot {
             data.setSlot(slot);
             database.save(data);
         }
+    }
+
+    public void delete() {
+        EbeanServer database = RaidCraft.getDatabase(RCHotbarPlugin.class);
+        getDatabaseId().map(id -> database.find(THotbarSlot.class, id))
+                .ifPresent(database::delete);
     }
 }

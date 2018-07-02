@@ -8,7 +8,6 @@ import de.raidcraft.combatbar.tables.THotbar;
 import de.raidcraft.combatbar.tables.THotbarHolder;
 import de.raidcraft.util.InventoryUtils;
 import lombok.Data;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -17,7 +16,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 @Data
 @HotbarName(RCHotbarPlugin.DEFAULT_HOTBAR)
@@ -30,9 +28,6 @@ public class Hotbar {
     private int databaseId = -1;
     private String displayName = "Hotbar";
     private int baseSlotIndex = 0;
-    private int menuSlotIndex = 8;
-    private ItemStack menuSlotItem = null;
-    private Consumer<Hotbar> menuItemAction = null;
     private boolean active = false;
     private List<Integer> indicies = new ArrayList<Integer>() {{
         add(2);
@@ -45,15 +40,6 @@ public class Hotbar {
 
     public final Optional<Integer> getDatabaseId() {
         return databaseId < 0 ? Optional.empty() : Optional.of(databaseId);
-    }
-
-    public final ItemStack getMenuSlotItem() {
-        if (this.menuSlotItem != null) return this.menuSlotItem;
-        return HotbarUtils.createMenuItem(Material.NETHER_STAR);
-    }
-
-    public final Optional<Consumer<Hotbar>> getMenuItemAction() {
-        return Optional.ofNullable(menuItemAction);
     }
 
     public final Player getPlayer() {
@@ -109,6 +95,7 @@ public class Hotbar {
         slot.setIndex(index);
         slot.attach(this);
         Optional<HotbarSlot> result = Optional.ofNullable(this.slots.put(index, slot));
+        result.ifPresent(HotbarSlot::detach);
         save();
         return result;
     }
@@ -150,16 +137,18 @@ public class Hotbar {
     }
 
     public void activate() {
+        if (isActive()) return;
         this.active = true;
+        getSlots().values().forEach(slot -> slot.attach(this));
         save();
-        InventoryUtils.setAndDropOrAddItem(getPlayer(), getMenuSlotItem(), getMenuSlotIndex());
         fillEmptySlots();
     }
 
     public void deactivate() {
+        if (!isActive()) return;
         this.active = false;
+        getSlots().values().forEach(HotbarSlot::detach);
         save();
-        getInventory().clear(getMenuSlotIndex());
         getIndicies().forEach(index -> getInventory().clear(index));
     }
 
@@ -173,18 +162,6 @@ public class Hotbar {
     }
 
     public void onInteract(PlayerInteractEvent event) {
-        if (getActiveItemSlot() == getMenuSlotIndex()) {
-            switch (event.getAction()) {
-                case LEFT_CLICK_AIR:
-                case LEFT_CLICK_BLOCK:
-                case RIGHT_CLICK_AIR:
-                case RIGHT_CLICK_BLOCK:
-                    getMenuItemAction().ifPresent(consumer -> consumer.accept(this));
-                    break;
-            }
-            return;
-        }
-
         getHotbarSlot(getActiveItemSlot()).ifPresent(slot -> {
             switch (event.getAction()) {
                 case LEFT_CLICK_AIR:
@@ -220,16 +197,25 @@ public class Hotbar {
         });
     }
 
-    private final void fillEmptySlots() {
+    public final void fillEmptySlots(ItemStack item) {
         // block all empty hotbar slots with a void item
         for (Integer index : getIndicies()) {
             if (!getHotbarSlot(index).isPresent()) {
-                InventoryUtils.setAndDropOrAddItem(getPlayer(), HotbarUtils.getEmptySlotItem(), index);
+                ItemStack currentItem = getInventory().getItem(index);
+                if (item.isSimilar(currentItem) || HotbarUtils.getEmptySlotItem().isSimilar(currentItem)) {
+                    getInventory().setItem(index, item);
+                } else {
+                    InventoryUtils.setAndDropOrAddItem(getPlayer(), item, index);
+                }
             }
         }
     }
 
-    protected void save() {
+    public final void fillEmptySlots() {
+        fillEmptySlots(HotbarUtils.getEmptySlotItem());
+    }
+
+    public void save() {
         EbeanServer database = RaidCraft.getDatabase(RCHotbarPlugin.class);
         getDatabaseId().map(id -> database.find(THotbar.class, id))
                 .ifPresent(hotbar -> {
@@ -240,5 +226,11 @@ public class Hotbar {
                 });
 
         getSlots().values().forEach(HotbarSlot::save);
+    }
+
+    public void delete() {
+        EbeanServer database = RaidCraft.getDatabase(RCHotbarPlugin.class);
+        getDatabaseId().map(id -> database.find(THotbar.class, id))
+                .ifPresent(database::delete);
     }
 }

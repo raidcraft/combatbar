@@ -2,9 +2,12 @@ package de.raidcraft.combatbar.api;
 
 import com.avaje.ebean.EbeanServer;
 import de.raidcraft.RaidCraft;
+import de.raidcraft.combatbar.HotbarUtils;
 import de.raidcraft.combatbar.RCHotbarPlugin;
 import de.raidcraft.combatbar.tables.THotbarHolder;
+import de.raidcraft.util.InventoryUtils;
 import lombok.Data;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,10 +15,13 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @Data
 public class HotbarHolder implements Listener {
@@ -24,6 +30,10 @@ public class HotbarHolder implements Listener {
     private final List<Hotbar> hotbars = new ArrayList<>();
     private int databaseId = -1;
     private int activeHotbar = 0;
+    private int menuSlotIndex = 8;
+    private boolean enabled = false;
+    private ItemStack menuSlotItem = null;
+    private Consumer<HotbarHolder> menuItemAction = null;
 
     public Optional<Integer> getDatabaseId() {
         return databaseId < 0 ? Optional.empty() : Optional.of(databaseId);
@@ -38,8 +48,50 @@ public class HotbarHolder implements Listener {
         return Optional.ofNullable(this.hotbars.get(this.activeHotbar));
     }
 
+    public final ItemStack getMenuSlotItem() {
+        if (this.menuSlotItem != null) return this.menuSlotItem;
+        this.menuSlotItem = HotbarUtils.createMenuItem(Material.NETHER_STAR);
+        return menuSlotItem;
+    }
+
+    public final Optional<Consumer<HotbarHolder>> getMenuItemAction() {
+        return Optional.ofNullable(menuItemAction);
+    }
+
+    public final PlayerInventory getInventory() {
+        return getPlayer().getInventory();
+    }
+
+    public final int getActiveItemSlot() {
+        return getInventory().getHeldItemSlot();
+    }
+
     public void addHotbar(Hotbar hotbar) {
         this.hotbars.add(hotbar);
+    }
+
+    public void setEnabled(boolean enabled) {
+        if (enabled) {
+            enable();
+        } else {
+            disable();
+        }
+    }
+
+    public void enable() {
+        if (isEnabled()) return;
+        this.enabled = true;
+        if (!getMenuSlotItem().isSimilar(getInventory().getItem(getMenuSlotIndex()))) {
+            InventoryUtils.setAndDropOrAddItem(getPlayer(), getMenuSlotItem(), getMenuSlotIndex());
+        }
+    }
+
+    public void disable() {
+        if (!isEnabled()) return;
+        this.enabled = false;
+        getPlayer().getInventory().clear(getMenuSlotIndex());
+        getActiveHotbar().ifPresent(Hotbar::deactivate);
+        save();
     }
 
     @EventHandler()
@@ -48,31 +100,41 @@ public class HotbarHolder implements Listener {
         if (event.getPreviousSlot() == event.getNewSlot()) return;
         if (!event.getPlayer().equals(getPlayer())) return;
 
-        getActiveHotbar().ifPresent(hotbar -> hotbar.onHotbarSlotChange(event));
-
-        if (hotbars.size() < 2) return;
-
         // handle hotbar cylcing
-        getActiveHotbar().ifPresent(hotbar -> {
-            if (event.getPlayer().isSneaking() && event.getPreviousSlot() == hotbar.getMenuSlotIndex()) {
-                getActiveHotbar().ifPresent(Hotbar::deactivate);
-                if (event.getNewSlot() < event.getPreviousSlot()) {
-                    this.activeHotbar++;
-                    if (this.activeHotbar >= this.hotbars.size()) this.activeHotbar = 0;
-                } else if (event.getNewSlot() > event.getPreviousSlot() || event.getNewSlot() == 0) {
-                    this.activeHotbar--;
-                    if (this.activeHotbar < 0) this.activeHotbar = this.hotbars.size() - 1;
-                }
-                getActiveHotbar().ifPresent(Hotbar::activate);
-                event.setCancelled(true);
+        if (event.getPlayer().isSneaking() && event.getPreviousSlot() == getMenuSlotIndex()) {
+            getActiveHotbar().ifPresent(Hotbar::deactivate);
+            if (event.getNewSlot() < event.getPreviousSlot()) {
+                this.activeHotbar++;
+                if (this.activeHotbar >= this.hotbars.size()) this.activeHotbar = 0;
+            } else if (event.getNewSlot() > event.getPreviousSlot() || event.getNewSlot() == 0) {
+                this.activeHotbar--;
+                if (this.activeHotbar < 0) this.activeHotbar = this.hotbars.size() - 1;
             }
-        });
+            getActiveHotbar().ifPresent(Hotbar::activate);
+            event.setCancelled(true);
+            return;
+        }
+
+        getActiveHotbar().ifPresent(hotbar -> hotbar.onHotbarSlotChange(event));
     }
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
 
         if (!event.getPlayer().equals(event.getPlayer())) return;
+
+        if (getActiveItemSlot() == getMenuSlotIndex()) {
+            switch (event.getAction()) {
+                case LEFT_CLICK_AIR:
+                case LEFT_CLICK_BLOCK:
+                case RIGHT_CLICK_AIR:
+                case RIGHT_CLICK_BLOCK:
+                    getMenuItemAction().ifPresent(consumer -> consumer.accept(this));
+                    break;
+            }
+            event.setCancelled(true);
+            return;
+        }
 
         getActiveHotbar().ifPresent(hotbar -> hotbar.onInteract(event));
     }
@@ -81,6 +143,7 @@ public class HotbarHolder implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
 
         if (!event.getWhoClicked().equals(getPlayer())) return;
+        if (isHotbarSlot(event.getSlot())) event.setCancelled(true);
 
         getActiveHotbar().ifPresent(hotbar -> hotbar.onInventoryClick(event));
     }
@@ -88,10 +151,13 @@ public class HotbarHolder implements Listener {
     @EventHandler
     public void onItemDropEvent(PlayerDropItemEvent event) {
 
-        int heldItemSlot = event.getPlayer().getInventory().getHeldItemSlot();
-        getActiveHotbar().filter(hotbar -> hotbar.getIndicies().contains(heldItemSlot)
-                || heldItemSlot == hotbar.getMenuSlotIndex())
-                .ifPresent(hotbar -> event.setCancelled(true));
+        if (isHotbarSlot(getActiveHotbarSlot())) event.setCancelled(true);
+    }
+
+    private boolean isHotbarSlot(int index) {
+
+        return getActiveHotbar().filter(hotbar -> hotbar.getIndicies().contains(index)
+                || index == getMenuSlotIndex()).isPresent();
     }
 
     public void save() {
@@ -103,5 +169,11 @@ public class HotbarHolder implements Listener {
                 });
 
         getHotbars().forEach(Hotbar::save);
+    }
+
+    public void delete() {
+        EbeanServer database = RaidCraft.getDatabase(RCHotbarPlugin.class);
+        getDatabaseId().map(id -> database.find(THotbarHolder.class, id))
+                .ifPresent(database::delete);
     }
 }

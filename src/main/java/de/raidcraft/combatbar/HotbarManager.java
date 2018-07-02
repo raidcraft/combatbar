@@ -9,10 +9,8 @@ import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Consumer;
 
 public class HotbarManager implements Component {
 
@@ -23,6 +21,7 @@ public class HotbarManager implements Component {
     private final Map<UUID, HotbarHolder> hotbarHolders = new HashMap<>();
     private final Map<String, HotbarFactory<?>> hotbarFactories = new HashMap<>();
     private final Map<String, HotbarSlotFactory<?>> hotbarSlotFactories = new HashMap<>();
+    private final List<Consumer<HotbarHolder>> hotbarMenuActions = new ArrayList<>();
 
     public HotbarManager(RCHotbarPlugin plugin) {
         this.plugin = plugin;
@@ -48,6 +47,10 @@ public class HotbarManager implements Component {
 
     public Optional<HotbarSlotFactory<?>> getHotbarSlotFactory(String name) {
         return Optional.ofNullable(hotbarSlotFactories.get(name));
+    }
+
+    public void addHotbarMenuAction(Consumer<HotbarHolder> action) {
+        this.hotbarMenuActions.add(action);
     }
 
     public void registerHotbarType(Plugin plugin, Class<? extends Hotbar> hotbarClass) {
@@ -119,12 +122,20 @@ public class HotbarManager implements Component {
     }
 
     public Hotbar getOrCreateHotbar(Player player) {
-        HotbarHolder hotbarHolder = getHolderFactory().create(player);
-        return getActiveHotbar(player).orElseGet(() -> {
+        HotbarHolder hotbarHolder = getHotbarHolder(player);
+        return hotbarHolder.getActiveHotbar().orElseGet(() -> {
             Hotbar hotbar = getDefaultHotbarFactory().createNew(hotbarHolder);
             hotbarHolder.addHotbar(hotbar);
             return hotbar;
         });
+    }
+
+    public HotbarHolder getHotbarHolder(Player player) {
+        if (hotbarHolders.containsKey(player.getUniqueId())) {
+            return hotbarHolders.get(player.getUniqueId());
+        }
+        registerPlayer(player);
+        return getHotbarHolder(player);
     }
 
     public void registerPlayer(Player player) {
@@ -132,14 +143,15 @@ public class HotbarManager implements Component {
         HotbarHolder holder = getHolderFactory().create(player);
         getPlugin().registerEvents(holder);
         hotbarHolders.put(player.getUniqueId(), holder);
+        if (hotbarMenuActions.size() > 0) holder.setMenuItemAction(hotbarMenuActions.get(0));
+        holder.enable();
     }
 
     public void unregisterPlayer(Player player) {
         HotbarHolder holder = hotbarHolders.remove(player.getUniqueId());
         if (holder != null) {
             getPlugin().unregisterEvents(holder);
-            holder.save();
-            holder.getActiveHotbar().ifPresent(Hotbar::deactivate);
+            holder.disable();
         }
     }
 }
