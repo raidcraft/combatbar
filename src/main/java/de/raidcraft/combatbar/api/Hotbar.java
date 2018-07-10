@@ -146,7 +146,7 @@ public class Hotbar {
         try {
             onActivate();
             this.active = true;
-            getSlots().values().forEach(slot -> slot.attach(this));
+            new ArrayList<>(getSlots().values()).forEach(slot -> slot.attach(this));
             save();
             fillEmptySlots();
         } catch (HotbarException e) {
