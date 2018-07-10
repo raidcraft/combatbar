@@ -3,10 +3,13 @@ package de.raidcraft.combatbar.hotbars;
 import de.raidcraft.combatbar.api.Hotbar;
 import de.raidcraft.combatbar.api.HotbarHolder;
 import de.raidcraft.combatbar.api.HotbarName;
+import de.raidcraft.combatbar.slots.InventoryHotbarSlot;
+import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.inventory.ItemStack;
 
 @HotbarName("inventory")
 public class InventoryHotbar extends Hotbar {
@@ -15,6 +18,18 @@ public class InventoryHotbar extends Hotbar {
         super(holder);
         setDisplayName("Inventar");
         setFillEmptySlots(false);
+    }
+
+    @Override
+    public void onDeactivate() {
+        for (Integer index : getIndicies()) {
+            ItemStack item = getInventory().getItem(index);
+            if (item != null && item.getType() != Material.AIR) {
+                if (!getHotbarSlot(index).isPresent()) {
+                    setHotbarSlot(index, new InventoryHotbarSlot());
+                }
+            }
+        }
     }
 
     @Override
