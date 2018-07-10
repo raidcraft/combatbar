@@ -70,6 +70,7 @@ public class HotbarHolder implements Listener {
     public final void setActiveHotbar(int index) {
         if (index < 0 || index >= getHotbars().size()) return;
         Hotbar hotbar = getHotbars().get(index);
+
         if (hotbar.isActive()) return;
         getActiveHotbar().ifPresent(Hotbar::deactivate);
         this.activeHotbar = index;
@@ -81,6 +82,8 @@ public class HotbarHolder implements Listener {
     }
 
     public void addHotbar(Hotbar hotbar, boolean activate) {
+        if (hotbar == null) return;
+
         this.hotbars.add(hotbar);
         if (activate) activate(hotbar);
     }
