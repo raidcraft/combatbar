@@ -28,6 +28,7 @@ public class HotbarManager implements Component {
     public HotbarManager(RCHotbarPlugin plugin) {
         this.plugin = plugin;
         this.holderFactory = new HotbarHolderFactory(plugin);
+        registerGlobalHotbars();
         registerGlobalHotbarSlots();
     }
 
