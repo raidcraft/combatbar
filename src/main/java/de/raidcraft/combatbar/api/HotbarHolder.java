@@ -45,7 +45,7 @@ public class HotbarHolder implements Listener {
     }
 
     public Optional<Hotbar> getActiveHotbar() {
-        if (this.activeHotbar < 0 || this.hotbars.size() < this.activeHotbar) return Optional.empty();
+        if (this.activeHotbar < 0 || this.hotbars.size() <= this.activeHotbar) return Optional.empty();
         return Optional.ofNullable(this.hotbars.get(this.activeHotbar));
     }
 
