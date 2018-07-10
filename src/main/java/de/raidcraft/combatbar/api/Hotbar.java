@@ -8,8 +8,10 @@ import de.raidcraft.combatbar.tables.THotbar;
 import de.raidcraft.combatbar.tables.THotbarHolder;
 import de.raidcraft.util.InventoryUtils;
 import lombok.Data;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
@@ -18,7 +20,7 @@ import org.bukkit.inventory.PlayerInventory;
 import java.util.*;
 
 @Data
-@HotbarName(RCHotbarPlugin.DEFAULT_HOTBAR)
+@HotbarName("default")
 public class Hotbar {
 
     private final Map<Integer, HotbarSlot> slots = new HashMap<>();
@@ -29,6 +31,8 @@ public class Hotbar {
     private String displayName = "Hotbar";
     private int baseSlotIndex = 0;
     private boolean active = false;
+    private boolean fillEmptySlots = true;
+
     private List<Integer> indicies = new ArrayList<Integer>() {{
         add(2);
         add(3);
@@ -93,7 +97,8 @@ public class Hotbar {
     public final Optional<HotbarSlot> setHotbarSlot(int index, HotbarSlot slot) {
         if (!indicies.contains(index)) return Optional.empty();
         slot.setIndex(index);
-        slot.attach(this);
+        slot.
+                attach(this);
         Optional<HotbarSlot> result = Optional.ofNullable(this.slots.put(index, slot));
         result.ifPresent(HotbarSlot::detach);
         save();
@@ -138,17 +143,39 @@ public class Hotbar {
 
     public void activate() {
         if (isActive()) return;
-        this.active = true;
-        getSlots().values().forEach(slot -> slot.attach(this));
-        save();
-        fillEmptySlots();
+        try {
+            onActivate();
+            this.active = true;
+            getSlots().values().forEach(slot -> slot.attach(this));
+            save();
+            fillEmptySlots();
+        } catch (HotbarException e) {
+            getPlayer().sendMessage(ChatColor.RED + "Konnte Hotbar " + getDisplayName() + " nicht aktivieren!");
+            getPlayer().sendMessage(ChatColor.RED + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * onActivate is called just before the hotbar is initialized.
+     * Throw a {@link HotbarException} to cancel the activa
+     * tion.
+     */
+    public void onActivate() throws HotbarException {
     }
 
     public void deactivate() {
         if (!isActive()) return;
+        onDeactivate();
         this.active = false;
         save();
         getIndicies().forEach(index -> getInventory().clear(index));
+    }
+
+    /**
+     * Is called just before the hotbar is deavtivated and all slots are cleared.
+     */
+    public void onDeactivate() {
     }
 
     public void onHotbarSlotChange(PlayerItemHeldEvent event) {
@@ -182,6 +209,7 @@ public class Hotbar {
 
     public void onInventoryClick(InventoryClickEvent event) {
         if (!isActive()) return;
+        if (getHolder().isHotbarSlot(event.getSlot())) event.setCancelled(true);
 
         getHotbarSlot(event.getSlot()).ifPresent(slot -> {
 
@@ -203,7 +231,13 @@ public class Hotbar {
         });
     }
 
+    public void onItemDrop(PlayerDropItemEvent event) {
+        if (!isActive()) return;
+        if (getHolder().isHotbarSlot(getHolder().getHeldItemSlot())) event.setCancelled(true);
+    }
+
     public final void fillEmptySlots(ItemStack item) {
+        if (!isFillEmptySlots()) return;
         // block all empty hotbar slots with a void item
         for (Integer index : getIndicies()) {
             if (!getHotbarSlot(index).isPresent()) {

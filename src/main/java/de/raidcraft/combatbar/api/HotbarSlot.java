@@ -8,6 +8,7 @@ import de.raidcraft.combatbar.tables.THotbarSlot;
 import de.raidcraft.combatbar.tables.THotbarSlotData;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
@@ -52,9 +53,16 @@ public abstract class HotbarSlot {
     }
 
     public final void attach(Hotbar hotbar) {
-        this.hotbar = hotbar;
-        onAttach(hotbar);
-        hotbar.getInventory().setItem(getIndex(), getItem());
+        try {
+            this.hotbar = hotbar;
+            onAttach(hotbar);
+            hotbar.getInventory().setItem(getIndex(), getItem());
+        } catch (HotbarException e) {
+            hotbar.getHolder().getPlayer().sendMessage(ChatColor.RED + "Hotbar Slot " + getIndex() + " deaktiviert:");
+            hotbar.getHolder().getPlayer().sendMessage(ChatColor.RED + e.getMessage());
+            e.printStackTrace();
+            hotbar.removeHotbarSlot(getIndex());
+        }
     }
 
     /**
@@ -64,7 +72,7 @@ public abstract class HotbarSlot {
      *
      * @param hotbar the slot is attached to.
      */
-    public void onAttach(Hotbar hotbar) {
+    public void onAttach(Hotbar hotbar) throws HotbarException {
     }
 
     public final void detach() {
@@ -177,7 +185,13 @@ public abstract class HotbarSlot {
                 .ifPresent(slot::setHotbar);
 
         slot.setName(getName());
-        if (isSaveItem()) slot.setItem(RaidCraft.getItemIdString(getItem()));
+        if (isSaveItem()) {
+            ItemStack item = RaidCraft.getUnsafeItem(slot.getItem());
+            if (item != null && !item.isSimilar(getItem())) {
+                RaidCraft.removeStoredItem(slot.getItem());
+            }
+            slot.setItem(RaidCraft.getItemIdString(getItem(), item == null));
+        }
         slot.setPosition(getIndex());
 
         slot.getData().clear();
@@ -197,9 +211,12 @@ public abstract class HotbarSlot {
         }
     }
 
-    public void delete() {
+    public final void delete() {
         EbeanServer database = RaidCraft.getDatabase(RCHotbarPlugin.class);
         getDatabaseId().map(id -> database.find(THotbarSlot.class, id))
-                .ifPresent(database::delete);
+                .ifPresent(entry -> {
+                    RaidCraft.removeStoredItem(entry.getItem());
+                    database.delete(entry);
+                });
     }
 }

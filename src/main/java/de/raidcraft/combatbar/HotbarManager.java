@@ -5,6 +5,8 @@ import de.raidcraft.combatbar.api.*;
 import de.raidcraft.combatbar.factories.HotbarFactory;
 import de.raidcraft.combatbar.factories.HotbarHolderFactory;
 import de.raidcraft.combatbar.factories.HotbarSlotFactory;
+import de.raidcraft.combatbar.hotbars.InventoryHotbar;
+import de.raidcraft.combatbar.slots.InventoryHotbarSlot;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -26,19 +28,24 @@ public class HotbarManager implements Component {
     public HotbarManager(RCHotbarPlugin plugin) {
         this.plugin = plugin;
         this.holderFactory = new HotbarHolderFactory(plugin);
-        try {
-            this.hotbarFactories.put(RCHotbarPlugin.DEFAULT_HOTBAR, new HotbarFactory<>(Hotbar.class));
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        }
         registerGlobalHotbarSlots();
     }
 
+    private void registerGlobalHotbars() {
+        registerHotbarType(getPlugin(), Hotbar.class);
+        registerHotbarType(getPlugin(), InventoryHotbar.class);
+    }
+
     private void registerGlobalHotbarSlots() {
+        registerHotbarSlotType(InventoryHotbarSlot.class);
     }
 
     public Optional<HotbarFactory<?>> getHotbarFactory(String name) {
         return Optional.ofNullable(hotbarFactories.get(name));
+    }
+
+    public Optional<HotbarFactory<?>> getHotbarFactory(Class<? extends Hotbar> hotbarType) {
+        return getHotbarFactory(getHotbarName(hotbarType));
     }
 
     public HotbarFactory<?> getDefaultHotbarFactory() {
@@ -53,13 +60,17 @@ public class HotbarManager implements Component {
         this.hotbarMenuActions.add(action);
     }
 
+    private String getHotbarName(Class<? extends Hotbar> hotbarType) {
+        return hotbarType.getAnnotation(HotbarName.class).value();
+    }
+
     public void registerHotbarType(Plugin plugin, Class<? extends Hotbar> hotbarClass) {
         if (!hotbarClass.isAnnotationPresent(HotbarName.class)) {
             getPlugin().warning(plugin.getName() + " tried to register Hotbar Class " + hotbarClass.getCanonicalName() + " without annoation!");
             return;
         }
 
-        String hotbarName = hotbarClass.getAnnotation(HotbarName.class).value();
+        String hotbarName = getHotbarName(hotbarClass);
 
         if (hotbarFactories.containsKey(hotbarName)) {
             getPlugin().getLogger().warning("Duplicate Hotbar Registration with displayName: " + hotbarName);
@@ -75,10 +86,9 @@ public class HotbarManager implements Component {
         }
     }
 
-    public void registerHotbarSlotType(Plugin plugin, Class<? extends HotbarSlot> hotbarSlotClass) {
+    public void registerHotbarSlotType(Class<? extends HotbarSlot> hotbarSlotClass) {
 
         getHotbarSlotName(hotbarSlotClass)
-//                .map(name -> plugin.getName() + "." + name)
                 .ifPresent(name -> registerHotbarSlot(name, hotbarSlotClass));
     }
 
@@ -128,6 +138,18 @@ public class HotbarManager implements Component {
             hotbarHolder.addHotbar(hotbar);
             return hotbar;
         });
+    }
+
+    public Hotbar getOrCreateHotbar(Player player, Class<? extends Hotbar> hotbarType) {
+
+        HotbarHolder holder = getHotbarHolder(player);
+        Hotbar hotbar = holder.getActiveHotbar().filter(hotbarType::isInstance)
+                .orElseGet(() -> getHotbarFactory(hotbarType)
+                        .map(hotbarFactory -> hotbarFactory.createNew(holder))
+                        .orElse(null));
+
+        holder.addHotbar(hotbar, true);
+        return hotbar;
     }
 
     public HotbarHolder getHotbarHolder(Player player) {

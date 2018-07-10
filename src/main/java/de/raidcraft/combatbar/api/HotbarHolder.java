@@ -67,8 +67,27 @@ public class HotbarHolder implements Listener {
         return getInventory().getHeldItemSlot();
     }
 
+    public final void setActiveHotbar(int index) {
+        if (index < 0 || index >= getHotbars().size()) return;
+        Hotbar hotbar = getHotbars().get(index);
+        if (hotbar.isActive()) return;
+        getActiveHotbar().ifPresent(Hotbar::deactivate);
+        this.activeHotbar = index;
+        hotbar.activate();
+    }
+
     public void addHotbar(Hotbar hotbar) {
+        addHotbar(hotbar, false);
+    }
+
+    public void addHotbar(Hotbar hotbar, boolean activate) {
         this.hotbars.add(hotbar);
+        if (activate) activate(hotbar);
+    }
+
+    public void activate(Hotbar hotbar) {
+        int index = this.hotbars.indexOf(hotbar);
+        if (index > -1) setActiveHotbar(index);
     }
 
     public void setEnabled(boolean enabled) {
@@ -147,20 +166,17 @@ public class HotbarHolder implements Listener {
         if (!isEnabled()) return;
         if (!event.getWhoClicked().equals(getPlayer())) return;
         if (event.getSlotType() != InventoryType.SlotType.QUICKBAR) return;
-        if (isHotbarSlot(event.getSlot())) event.setCancelled(true);
 
         getActiveHotbar().ifPresent(hotbar -> hotbar.onInventoryClick(event));
     }
 
     @EventHandler
     public void onItemDropEvent(PlayerDropItemEvent event) {
-
         if (!isEnabled()) return;
-        if (isHotbarSlot(getHeldItemSlot())) event.setCancelled(true);
+        getActiveHotbar().ifPresent(hotbar -> hotbar.onItemDrop(event));
     }
 
-    private boolean isHotbarSlot(int index) {
-
+    protected boolean isHotbarSlot(int index) {
         return getActiveHotbar().filter(hotbar -> hotbar.getIndicies().contains(index)
                 || index == getMenuSlotIndex()).isPresent();
     }

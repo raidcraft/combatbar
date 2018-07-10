@@ -17,7 +17,7 @@ import java.util.List;
 
 public class RCHotbarPlugin extends BasePlugin {
 
-    public static final String DEFAULT_HOTBAR = "default";
+    public static final String DEFAULT_HOTBAR = "inventory";
 
     @Getter
     private LocalConfiguration config;
