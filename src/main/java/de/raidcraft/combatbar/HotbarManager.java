@@ -167,6 +167,12 @@ public class HotbarManager implements Component {
         hotbarHolders.put(player.getUniqueId(), holder);
         if (hotbarMenuActions.size() > 0) holder.setMenuItemAction(hotbarMenuActions.get(0));
         holder.enable();
+        for (Hotbar hotbar : holder.getHotbars()) {
+            if (InventoryHotbar.class.isInstance(hotbar)) {
+                return;
+            }
+        }
+        getOrCreateHotbar(player, InventoryHotbar.class);
     }
 
     public void unregisterPlayer(Player player) {
