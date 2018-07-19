@@ -141,7 +141,7 @@ public class Hotbar {
         }
     }
 
-    public void activate() {
+    void activate() {
         if (isActive()) return;
         try {
             onActivate();
@@ -161,10 +161,10 @@ public class Hotbar {
      * Throw a {@link HotbarException} to cancel the activa
      * tion.
      */
-    public void onActivate() throws HotbarException {
+    protected void onActivate() throws HotbarException {
     }
 
-    public void deactivate() {
+    void deactivate() {
         if (!isActive()) return;
         onDeactivate();
         this.active = false;
@@ -175,14 +175,16 @@ public class Hotbar {
     /**
      * Is called just before the hotbar is deavtivated and all slots are cleared.
      */
-    public void onDeactivate() {
+    protected void onDeactivate() {
     }
 
     public void onHotbarSlotChange(PlayerItemHeldEvent event) {
         // handle hotbar slot activation
         if (event.getPreviousSlot() == getBaseSlotIndex() && getIndicies().contains(event.getNewSlot())) {
-            getHotbarSlot(event.getNewSlot()).ifPresent(slot -> slot.onSelect(event.getPlayer()));
-            event.setCancelled(true);
+            getHotbarSlot(event.getNewSlot()).ifPresent(slot -> {
+                slot.onSelect(event.getPlayer());
+                if (slot.isCancelOnSelect()) event.setCancelled(true);
+            });
             return;
         }
     }
@@ -193,11 +195,11 @@ public class Hotbar {
             switch (event.getAction()) {
                 case LEFT_CLICK_AIR:
                 case LEFT_CLICK_BLOCK:
-                    slot.onLeftClickInteract(event.getPlayer());
+                    slot.onLeftClickInteract(event);
                     break;
                 case RIGHT_CLICK_AIR:
                 case RIGHT_CLICK_BLOCK:
-                    slot.onRightClickInteract(event.getPlayer());
+                    slot.onRightClickInteract(event);
                     break;
             }
         });

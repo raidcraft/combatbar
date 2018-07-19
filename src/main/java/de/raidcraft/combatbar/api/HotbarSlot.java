@@ -13,6 +13,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
@@ -41,6 +42,9 @@ public abstract class HotbarSlot {
     @Setter
     @Getter
     private boolean saveItem = true;
+    @Getter
+    @Setter
+    private boolean cancelOnSelect = true;
     /**
      * The {@link Hotbar} this slot is attached to.
      * Can be null if the slot has not been attached to a hotbar.
@@ -50,6 +54,11 @@ public abstract class HotbarSlot {
 
     public Optional<Hotbar> getHotbar() {
         return Optional.ofNullable(hotbar);
+    }
+
+    public HotbarSlot setCancelOnSelect(boolean cancelOnSelect) {
+        this.cancelOnSelect = cancelOnSelect;
+        return this;
     }
 
     public final void attach(Hotbar hotbar) {
@@ -117,9 +126,9 @@ public abstract class HotbarSlot {
      * <p>
      * Override and implement your logic.
      *
-     * @param player that right clicked
+     * @param event that was fired
      */
-    public void onRightClickInteract(Player player) {
+    public void onRightClickInteract(PlayerInteractEvent event) {
     }
 
     /**
@@ -128,9 +137,9 @@ public abstract class HotbarSlot {
      * <p>
      * Override and implement your logic.
      *
-     * @param player that left clicked
+     * @param event that was fired
      */
-    public void onLeftClickInteract(Player player) {
+    public void onLeftClickInteract(PlayerInteractEvent event) {
     }
 
     /**

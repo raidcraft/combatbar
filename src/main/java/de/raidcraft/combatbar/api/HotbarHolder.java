@@ -88,6 +88,13 @@ public class HotbarHolder implements Listener {
         if (activate) activate(hotbar);
     }
 
+    public void removeHotbar(Hotbar hotbar) {
+        if (hotbar == null) return;
+        hotbar.deactivate();
+        this.hotbars.remove(hotbar);
+        save();
+    }
+
     public void activate(Hotbar hotbar) {
         int index = this.hotbars.indexOf(hotbar);
         if (index > -1) setActiveHotbar(index);

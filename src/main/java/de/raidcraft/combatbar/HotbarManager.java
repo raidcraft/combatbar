@@ -6,6 +6,7 @@ import de.raidcraft.combatbar.factories.HotbarFactory;
 import de.raidcraft.combatbar.factories.HotbarHolderFactory;
 import de.raidcraft.combatbar.factories.HotbarSlotFactory;
 import de.raidcraft.combatbar.hotbars.InventoryHotbar;
+import de.raidcraft.combatbar.slots.ActionHotbarSlot;
 import de.raidcraft.combatbar.slots.InventoryHotbarSlot;
 import lombok.Getter;
 import org.bukkit.entity.Player;
@@ -39,6 +40,7 @@ public class HotbarManager implements Component {
 
     private void registerGlobalHotbarSlots() {
         registerHotbarSlotType(InventoryHotbarSlot.class);
+        registerHotbarSlotType(ActionHotbarSlot.class);
     }
 
     public Optional<HotbarFactory<?>> getHotbarFactory(String name) {
@@ -141,16 +143,21 @@ public class HotbarManager implements Component {
         });
     }
 
-    public Hotbar getOrCreateHotbar(Player player, Class<? extends Hotbar> hotbarType) {
-
+    public Hotbar getOrCreateHotbar(Player player, Class<? extends Hotbar> hotbarType, boolean activate) {
         HotbarHolder holder = getHotbarHolder(player);
         Hotbar hotbar = holder.getActiveHotbar().filter(hotbarType::isInstance)
                 .orElseGet(() -> getHotbarFactory(hotbarType)
                         .map(hotbarFactory -> hotbarFactory.createNew(holder))
                         .orElse(null));
 
-        holder.addHotbar(hotbar, true);
+        holder.addHotbar(hotbar, activate);
         return hotbar;
+    }
+
+
+    public Hotbar getOrCreateHotbar(Player player, Class<? extends Hotbar> hotbarType) {
+
+        return getOrCreateHotbar(player, hotbarType, true);
     }
 
     public HotbarHolder getHotbarHolder(Player player) {
