@@ -13,6 +13,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -45,6 +46,9 @@ public abstract class HotbarSlot {
     @Getter
     @Setter
     private boolean cancelOnSelect = true;
+    @Getter
+    @Setter
+    private boolean cancelBlockPlacement = true;
     /**
      * The {@link Hotbar} this slot is attached to.
      * Can be null if the slot has not been attached to a hotbar.
@@ -58,6 +62,11 @@ public abstract class HotbarSlot {
 
     public HotbarSlot setCancelOnSelect(boolean cancelOnSelect) {
         this.cancelOnSelect = cancelOnSelect;
+        return this;
+    }
+
+    public HotbarSlot setCancelBlockPlacement(boolean cancelBlockPlacement) {
+        this.cancelBlockPlacement = cancelBlockPlacement;
         return this;
     }
 
@@ -180,6 +189,15 @@ public abstract class HotbarSlot {
      * @param player who clicked
      */
     public void onInventoryMiddleClick(Player player) {
+    }
+
+    /**
+     * Is called when the player right clicks and tries to place a block.
+     * The event will be cancelled beforehand if {@link #isCancelBlockPlacement()} is true.
+     *
+     * @param event of the block placement
+     */
+    public void onPlayerBlaceBlock(BlockPlaceEvent event) {
     }
 
     protected final void save() {

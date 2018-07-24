@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -154,7 +155,7 @@ public class HotbarHolder implements Listener {
     public void onInteract(PlayerInteractEvent event) {
 
         if (!isEnabled()) return;
-        if (!event.getPlayer().equals(event.getPlayer())) return;
+        if (!event.getPlayer().equals(getPlayer())) return;
 
         if (getHeldItemSlot() == getMenuSlotIndex()) {
             event.setCancelled(true);
@@ -171,6 +172,15 @@ public class HotbarHolder implements Listener {
     }
 
     @EventHandler
+    public void onPlayerPlaceBlock(BlockPlaceEvent event) {
+
+        if (!isEnabled()) return;
+        if (!event.getPlayer().equals(getPlayer())) return;
+
+        getActiveHotbar().ifPresent(hotbar -> hotbar.onBlockPlace(event));
+    }
+
+    @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
 
         if (!isEnabled()) return;
@@ -183,6 +193,8 @@ public class HotbarHolder implements Listener {
     @EventHandler
     public void onItemDropEvent(PlayerDropItemEvent event) {
         if (!isEnabled()) return;
+        if (!event.getPlayer().equals(getPlayer())) return;
+
         getActiveHotbar().ifPresent(hotbar -> hotbar.onItemDrop(event));
     }
 

@@ -10,6 +10,7 @@ import de.raidcraft.util.InventoryUtils;
 import lombok.Data;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -274,5 +275,13 @@ public class Hotbar {
         EbeanServer database = RaidCraft.getDatabase(RCHotbarPlugin.class);
         getDatabaseId().map(id -> database.find(THotbar.class, id))
                 .ifPresent(database::delete);
+    }
+
+    public void onBlockPlace(BlockPlaceEvent event) {
+        if (!isActive()) return;
+        Optional<HotbarSlot> hotbarSlot = getHotbarSlot(getActiveItemSlot());
+        if (hotbarSlot.map(HotbarSlot::isCancelBlockPlacement).orElse(false)) event.setCancelled(true);
+
+        hotbarSlot.ifPresent(slot -> slot.onPlayerBlaceBlock(event));
     }
 }

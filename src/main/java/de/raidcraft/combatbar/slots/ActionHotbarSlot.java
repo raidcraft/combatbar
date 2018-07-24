@@ -7,6 +7,7 @@ import de.raidcraft.combatbar.api.HotbarSlotName;
 import lombok.Data;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -25,6 +26,7 @@ public class ActionHotbarSlot extends HotbarSlot {
     private Consumer<Player> onInventoryLeftClick = null;
     private Consumer<Player> onInventoryDoubleClick = null;
     private Consumer<Player> onInventoryMiddleClick = null;
+    private Consumer<BlockPlaceEvent> onPlayerPlaceBlock = null;
     private Supplier<ItemStack> itemGetter;
 
     public ActionHotbarSlot() {
@@ -35,6 +37,18 @@ public class ActionHotbarSlot extends HotbarSlot {
     }
 
     @Override
+    public ActionHotbarSlot setCancelOnSelect(boolean cancelOnSelect) {
+        super.setCancelOnSelect(cancelOnSelect);
+        return this;
+    }
+
+    @Override
+    public ActionHotbarSlot setCancelBlockPlacement(boolean cancelBlockPlacement) {
+        super.setCancelBlockPlacement(cancelBlockPlacement);
+        return this;
+    }
+
+    @Override
     public ItemStack getItem() {
         if (getItemGetter() == null) return super.getItem();
         return getItemGetter().get();
@@ -42,12 +56,6 @@ public class ActionHotbarSlot extends HotbarSlot {
 
     public ActionHotbarSlot setItemGetter(Supplier<ItemStack> itemGetter) {
         this.itemGetter = itemGetter;
-        return this;
-    }
-
-    @Override
-    public ActionHotbarSlot setCancelOnSelect(boolean cancelOnSelect) {
-        super.setCancelOnSelect(cancelOnSelect);
         return this;
     }
 
@@ -105,6 +113,11 @@ public class ActionHotbarSlot extends HotbarSlot {
         return this;
     }
 
+    public ActionHotbarSlot setOnPlayerPlaceBlock(Consumer<BlockPlaceEvent> onPlayerPlaceBlock) {
+        this.onPlayerPlaceBlock = onPlayerPlaceBlock;
+        return this;
+    }
+
     @Override
     public void load(ConfigurationSection config) {
 
@@ -153,5 +166,10 @@ public class ActionHotbarSlot extends HotbarSlot {
     @Override
     public void onInventoryMiddleClick(Player player) {
         if (onInventoryMiddleClick != null) onInventoryMiddleClick.accept(player);
+    }
+
+    @Override
+    public void onPlayerBlaceBlock(BlockPlaceEvent event) {
+        if (onPlayerPlaceBlock != null) onPlayerPlaceBlock.accept(event);
     }
 }
