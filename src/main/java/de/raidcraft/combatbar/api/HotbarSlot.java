@@ -202,7 +202,7 @@ public abstract class HotbarSlot {
     public void onPlayerBlaceBlock(BlockPlaceEvent event) {
     }
 
-    protected final void save() {
+    protected void save() {
         EbeanServer database = RaidCraft.getDatabase(RCHotbarPlugin.class);
         MemoryConfiguration config = new MemoryConfiguration();
         saveData(config);

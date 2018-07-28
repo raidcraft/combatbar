@@ -41,4 +41,10 @@ public class InventoryHotbarSlot extends HotbarSlot {
         if (item == null) return;
         config.set("item", RaidCraft.getItemIdString(item, true));
     }
+
+    @Override
+    protected void save() {
+        if (!getHotbar().map(Hotbar::isActive).orElse(false)) return;
+        super.save();
+    }
 }
