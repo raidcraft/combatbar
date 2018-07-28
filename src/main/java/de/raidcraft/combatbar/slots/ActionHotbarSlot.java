@@ -5,6 +5,7 @@ import de.raidcraft.combatbar.api.HotbarException;
 import de.raidcraft.combatbar.api.HotbarSlot;
 import de.raidcraft.combatbar.api.HotbarSlotName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -15,6 +16,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @HotbarSlotName("action-slot")
 public class ActionHotbarSlot extends HotbarSlot {
 
@@ -145,7 +147,7 @@ public class ActionHotbarSlot extends HotbarSlot {
 
     @Override
     public void onLeftClickInteract(PlayerInteractEvent event) {
-        if (onLeftClickInteract != null) onLeftClickInteract(event);
+        if (onLeftClickInteract != null) onLeftClickInteract.accept(event);
     }
 
     @Override

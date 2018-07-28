@@ -4,6 +4,7 @@ import de.raidcraft.combatbar.api.Hotbar;
 import de.raidcraft.combatbar.api.HotbarHolder;
 import de.raidcraft.combatbar.api.HotbarName;
 import de.raidcraft.combatbar.slots.InventoryHotbarSlot;
+import lombok.EqualsAndHashCode;
 import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -12,6 +13,7 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 
 @HotbarName("inventory")
+@EqualsAndHashCode(callSuper = true)
 public class InventoryHotbar extends Hotbar {
 
     public InventoryHotbar(HotbarHolder holder) {

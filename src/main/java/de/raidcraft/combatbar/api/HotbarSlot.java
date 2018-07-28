@@ -6,6 +6,7 @@ import de.raidcraft.combatbar.RCHotbarPlugin;
 import de.raidcraft.combatbar.tables.THotbar;
 import de.raidcraft.combatbar.tables.THotbarSlot;
 import de.raidcraft.combatbar.tables.THotbarSlotData;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.ChatColor;
@@ -23,6 +24,7 @@ import java.util.Optional;
  * A Hotbar slot can be attached to hotbar and therefor be useable.
  * A Hotbar slot can also exist without a hotbar to allow displaying it in a configuration menu.
  */
+@EqualsAndHashCode(of = {"name", "databaseId", "index", "hotbar"})
 public abstract class HotbarSlot {
 
     @Getter

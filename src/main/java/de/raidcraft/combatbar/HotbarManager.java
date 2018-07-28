@@ -136,7 +136,7 @@ public class HotbarManager implements Component {
 
     public Hotbar getOrCreateHotbar(Player player) {
         HotbarHolder hotbarHolder = getHotbarHolder(player);
-        return hotbarHolder.getActiveHotbar().orElseGet(() -> {
+        return hotbarHolder.getHotbars().stream().findFirst().orElseGet(() -> {
             Hotbar hotbar = getDefaultHotbarFactory().createNew(hotbarHolder);
             hotbarHolder.addHotbar(hotbar);
             return hotbar;
@@ -145,7 +145,9 @@ public class HotbarManager implements Component {
 
     public Hotbar getOrCreateHotbar(Player player, Class<? extends Hotbar> hotbarType, boolean activate) {
         HotbarHolder holder = getHotbarHolder(player);
-        Hotbar hotbar = holder.getActiveHotbar().filter(hotbarType::isInstance)
+        Hotbar hotbar = holder.getHotbars().stream()
+                .filter(hotbarType::isInstance)
+                .findFirst()
                 .orElseGet(() -> getHotbarFactory(hotbarType)
                         .map(hotbarFactory -> hotbarFactory.createNew(holder))
                         .orElse(null));

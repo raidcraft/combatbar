@@ -7,6 +7,7 @@ import de.raidcraft.combatbar.RCHotbarPlugin;
 import de.raidcraft.combatbar.tables.THotbarHolder;
 import de.raidcraft.util.InventoryUtils;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,6 +27,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 @Data
+@EqualsAndHashCode(of = {"player"})
 public class HotbarHolder implements Listener {
 
     private final Player player;
@@ -84,8 +86,10 @@ public class HotbarHolder implements Listener {
 
     public void addHotbar(Hotbar hotbar, boolean activate) {
         if (hotbar == null) return;
+        if (!hotbars.contains(hotbar)) {
+            this.hotbars.add(hotbar);
+        }
 
-        this.hotbars.add(hotbar);
         if (activate) activate(hotbar);
     }
 
@@ -93,6 +97,7 @@ public class HotbarHolder implements Listener {
         if (hotbar == null) return;
         hotbar.deactivate();
         this.hotbars.remove(hotbar);
+        hotbar.delete();
         save();
     }
 

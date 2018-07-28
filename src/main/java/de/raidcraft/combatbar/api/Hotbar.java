@@ -8,6 +8,7 @@ import de.raidcraft.combatbar.tables.THotbar;
 import de.raidcraft.combatbar.tables.THotbarHolder;
 import de.raidcraft.util.InventoryUtils;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -22,6 +23,7 @@ import java.util.*;
 
 @Data
 @HotbarName("default")
+@EqualsAndHashCode(of = {"databaseId", "displayName", "holder"})
 public class Hotbar {
 
     private final Map<Integer, HotbarSlot> slots = new HashMap<>();
@@ -279,9 +281,10 @@ public class Hotbar {
 
     public void onBlockPlace(BlockPlaceEvent event) {
         if (!isActive()) return;
-        Optional<HotbarSlot> hotbarSlot = getHotbarSlot(getActiveItemSlot());
-        if (hotbarSlot.map(HotbarSlot::isCancelBlockPlacement).orElse(false)) event.setCancelled(true);
 
-        hotbarSlot.ifPresent(slot -> slot.onPlayerBlaceBlock(event));
+        getHotbarSlot(getActiveItemSlot()).ifPresent(slot -> {
+            if (slot.isCancelBlockPlacement()) event.setCancelled(true);
+            slot.onPlayerBlaceBlock(event);
+        });
     }
 }

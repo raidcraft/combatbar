@@ -3,10 +3,12 @@ package de.raidcraft.combatbar.slots;
 import de.raidcraft.combatbar.api.Hotbar;
 import de.raidcraft.combatbar.api.HotbarSlot;
 import de.raidcraft.combatbar.api.HotbarSlotName;
+import lombok.EqualsAndHashCode;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
 @HotbarSlotName("inventory")
+@EqualsAndHashCode(callSuper = true)
 public class InventoryHotbarSlot extends HotbarSlot {
 
     public InventoryHotbarSlot() {
