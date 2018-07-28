@@ -100,8 +100,7 @@ public class Hotbar {
     public final Optional<HotbarSlot> setHotbarSlot(int index, HotbarSlot slot) {
         if (!indicies.contains(index)) return Optional.empty();
         slot.setIndex(index);
-        slot.
-                attach(this);
+        slot.attach(this);
         Optional<HotbarSlot> result = Optional.ofNullable(this.slots.put(index, slot));
         result.ifPresent(HotbarSlot::detach);
         save();

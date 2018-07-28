@@ -1,5 +1,6 @@
 package de.raidcraft.combatbar.slots;
 
+import de.raidcraft.RaidCraft;
 import de.raidcraft.combatbar.api.Hotbar;
 import de.raidcraft.combatbar.api.HotbarSlot;
 import de.raidcraft.combatbar.api.HotbarSlotName;
@@ -11,8 +12,11 @@ import org.bukkit.inventory.ItemStack;
 @EqualsAndHashCode(callSuper = true)
 public class InventoryHotbarSlot extends HotbarSlot {
 
+    private ItemStack item;
+
     public InventoryHotbarSlot() {
-        setSaveItem(true);
+        setName("inventory");
+        setSaveItem(false);
     }
 
     @Override
@@ -20,14 +24,21 @@ public class InventoryHotbarSlot extends HotbarSlot {
         return getHotbar()
                 .map(Hotbar::getInventory)
                 .map(inventory -> inventory.getItem(getIndex()))
-                .orElse(null);
+                .orElse(item);
     }
 
     @Override
     public void load(ConfigurationSection config) {
+        String itemId = config.getString("item");
+        item = RaidCraft.getUnsafeItem(itemId);
+        RaidCraft.removeStoredItem(itemId);
+        getHotbar().map(Hotbar::getInventory).ifPresent(inventory -> inventory.setItem(getIndex(), item));
     }
 
     @Override
     public void saveData(ConfigurationSection config) {
+        item = getItem();
+        if (item == null) return;
+        config.set("item", RaidCraft.getItemIdString(item, true));
     }
 }

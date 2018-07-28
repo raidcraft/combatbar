@@ -30,6 +30,8 @@ public class InventoryHotbar extends Hotbar {
                 if (!getHotbarSlot(index).isPresent()) {
                     setHotbarSlot(index, new InventoryHotbarSlot());
                 }
+            } else {
+                removeHotbarSlot(index);
             }
         }
     }
@@ -48,5 +50,11 @@ public class InventoryHotbar extends Hotbar {
 
     @Override
     public void onItemDrop(PlayerDropItemEvent event) {
+    }
+
+    @Override
+    public void save() {
+        if (!isActive()) return;
+        super.save();
     }
 }
