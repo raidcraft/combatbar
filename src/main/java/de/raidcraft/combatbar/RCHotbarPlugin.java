@@ -49,6 +49,7 @@ public class RCHotbarPlugin extends BasePlugin {
     @Override
     public void disable() {
 
+        getServer().getOnlinePlayers().forEach(player -> getHotbarManager().unregisterPlayer(player));
     }
 
     public boolean canEnableHotbarHolder(Player player) {
