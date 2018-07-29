@@ -142,6 +142,10 @@ public class ActionHotbarSlot extends HotbarSlot {
 
     @Override
     public void onRightClickInteract(PlayerInteractEvent event) {
+        if (onPlayerPlaceBlock != null) {
+            event.setCancelled(false);
+            return;
+        }
         if (onRightClickInteract != null) onRightClickInteract.accept(event);
     }
 
