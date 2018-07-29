@@ -11,6 +11,8 @@ import de.raidcraft.combatbar.tables.THotbarHolder;
 import de.raidcraft.combatbar.tables.THotbarSlot;
 import de.raidcraft.combatbar.tables.THotbarSlotData;
 import lombok.Getter;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,8 @@ public class RCHotbarPlugin extends BasePlugin {
     private LocalConfiguration config;
     @Getter
     private HotbarManager hotbarManager;
+    @Getter
+    private GraveyardSupportManager graveyardSupportManager;
 
     @Override
     public void reload() {
@@ -37,11 +41,18 @@ public class RCHotbarPlugin extends BasePlugin {
         RaidCraft.registerComponent(HotbarManager.class, hotbarManager);
 
         registerEvents(new HotbarListener(this));
+        if (Bukkit.getPluginManager().getPlugin("RCGraveyards") != null) {
+            graveyardSupportManager = new GraveyardSupportManager(this);
+        }
     }
 
     @Override
     public void disable() {
 
+    }
+
+    public boolean canEnableHotbarHolder(Player player) {
+        return graveyardSupportManager == null || graveyardSupportManager.isPlayerAlive(player);
     }
 
     @Override

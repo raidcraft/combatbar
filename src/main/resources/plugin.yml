@@ -5,4 +5,5 @@ description: Implementation of Combat Bar.
 author: Silthus
 website: http://www.raid-craft.de
 depend: [RaidCraft-API]
+softdepend: [RCGraveyards]
 database: false

@@ -172,6 +172,7 @@ public class HotbarManager implements Component {
 
     public void registerPlayer(Player player) {
         if (hotbarHolders.containsKey(player.getUniqueId())) return;
+        if (!plugin.canEnableHotbarHolder(player)) return;
         HotbarHolder holder = getHolderFactory().create(player);
         getPlugin().registerEvents(holder);
         hotbarHolders.put(player.getUniqueId(), holder);
