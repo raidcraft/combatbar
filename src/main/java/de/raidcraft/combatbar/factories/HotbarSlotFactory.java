@@ -39,7 +39,7 @@ public class HotbarSlotFactory<T extends HotbarSlot> {
         T slot = create();
         slot.setDatabaseId(dbEntry.getId());
         slot.setIndex(dbEntry.getPosition());
-        slot.setItem(RaidCraft.getUnsafeItem(dbEntry.getItem()));
+        RaidCraft.getItem(dbEntry.getItem()).ifPresent(slot::setItem);
         slot.load(ConfigUtil.parseKeyValueTable(new ArrayList<>(dbEntry.getData())));
         return slot;
     }
