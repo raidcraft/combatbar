@@ -126,9 +126,10 @@ public class HotbarHolder implements Listener {
     public void disable() {
         if (!isEnabled()) return;
         this.enabled = false;
-        getPlayer().getInventory().clear(getMenuSlotIndex());
         getActiveHotbar().ifPresent(Hotbar::deactivate);
         save();
+
+        getPlayer().getInventory().clear(getMenuSlotIndex());
     }
 
     @EventHandler()
@@ -140,6 +141,7 @@ public class HotbarHolder implements Listener {
 
         // handle hotbar cylcing
         if (event.getPlayer().isSneaking() && event.getPreviousSlot() == getMenuSlotIndex()) {
+            if (getHotbars().size() < 2) return;
             getActiveHotbar().ifPresent(Hotbar::deactivate);
             if (event.getNewSlot() < event.getPreviousSlot()) {
                 this.activeHotbar++;
@@ -216,7 +218,7 @@ public class HotbarHolder implements Listener {
                     database.save(holder);
                 });
 
-        getHotbars().forEach(Hotbar::save);
+//        getHotbars().forEach(Hotbar::save);
     }
 
     public void delete() {

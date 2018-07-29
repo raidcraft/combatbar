@@ -101,6 +101,16 @@ public abstract class HotbarSlot {
         this.hotbar = null;
     }
 
+    /**
+     * Called when the hotbar is disabled.
+     * <p>
+     * Override and implement your logic.
+     *
+     * @param hotbar that was disabled
+     */
+    protected void onDisable(Hotbar hotbar) {
+    }
+
     public final Optional<Integer> getDatabaseId() {
         return databaseId < 0 ? Optional.empty() : Optional.of(databaseId);
     }

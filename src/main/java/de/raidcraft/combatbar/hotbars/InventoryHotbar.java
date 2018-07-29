@@ -28,7 +28,9 @@ public class InventoryHotbar extends Hotbar {
             ItemStack item = getInventory().getItem(index);
             if (item != null && item.getType() != Material.AIR) {
                 if (!getHotbarSlot(index).isPresent()) {
-                    setHotbarSlot(index, new InventoryHotbarSlot());
+                    InventoryHotbarSlot slot = new InventoryHotbarSlot();
+                    slot.setItem(item);
+                    setHotbarSlot(index, slot);
                 }
             } else {
                 removeHotbarSlot(index);
@@ -55,9 +57,9 @@ public class InventoryHotbar extends Hotbar {
         if (getInventory().getHeldItemSlot() == getHolder().getMenuSlotIndex()) event.setCancelled(true);
     }
 
-    @Override
-    public void save() {
-        if (!isActive()) return;
-        super.save();
-    }
+//    @Override
+//    public void save() {
+//        if (!isActive()) return;
+//        super.save();
+//    }
 }

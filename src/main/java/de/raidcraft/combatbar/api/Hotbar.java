@@ -169,6 +169,7 @@ public class Hotbar {
     void deactivate() {
         if (!isActive()) return;
         onDeactivate();
+        getSlots().values().forEach(slot -> slot.onDisable(this));
         this.active = false;
         save();
         getIndicies().forEach(index -> getInventory().clear(index));
