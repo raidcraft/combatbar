@@ -1,11 +1,11 @@
 package de.raidcraft.combatbar.api;
 
-import com.avaje.ebean.EbeanServer;
 import de.raidcraft.RaidCraft;
 import de.raidcraft.combatbar.RCHotbarPlugin;
 import de.raidcraft.combatbar.tables.THotbar;
 import de.raidcraft.combatbar.tables.THotbarSlot;
 import de.raidcraft.combatbar.tables.THotbarSlotData;
+import io.ebean.EbeanServer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -241,7 +241,7 @@ public abstract class HotbarSlot {
             THotbarSlotData data = database.find(THotbarSlotData.class).where()
                     .eq("slot_id", slot.getId())
                     .eq("data_key", key)
-                    .findUnique();
+                    .findOne();
             if (data == null) data = new THotbarSlotData();
             data.setDataKey(key);
             data.setDataValue(config.get(key, "").toString());

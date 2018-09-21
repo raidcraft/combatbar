@@ -1,6 +1,5 @@
 package de.raidcraft.combatbar.factories;
 
-import com.avaje.ebean.EbeanServer;
 import de.raidcraft.RaidCraft;
 import de.raidcraft.combatbar.RCHotbarPlugin;
 import de.raidcraft.combatbar.api.Hotbar;
@@ -9,6 +8,7 @@ import de.raidcraft.combatbar.api.HotbarSlotName;
 import de.raidcraft.combatbar.tables.THotbar;
 import de.raidcraft.combatbar.tables.THotbarSlot;
 import de.raidcraft.util.ConfigUtil;
+import io.ebean.EbeanServer;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

@@ -1,9 +1,9 @@
 package de.raidcraft.combatbar.factories;
 
-import com.avaje.ebean.EbeanServer;
 import de.raidcraft.combatbar.RCHotbarPlugin;
 import de.raidcraft.combatbar.api.HotbarHolder;
 import de.raidcraft.combatbar.tables.THotbarHolder;
+import io.ebean.EbeanServer;
 import lombok.Data;
 import org.bukkit.entity.Player;
 
@@ -43,7 +43,7 @@ public class HotbarHolderFactory {
         THotbarHolder tHotbarHolder = database
                 .find(THotbarHolder.class)
                 .where().eq("player_id", player.getUniqueId())
-                .findUnique();
+                .findOne();
 
         if (tHotbarHolder == null) {
             tHotbarHolder = new THotbarHolder();

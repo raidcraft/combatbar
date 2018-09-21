@@ -1,11 +1,11 @@
 package de.raidcraft.combatbar.api;
 
-import com.avaje.ebean.EbeanServer;
 import de.raidcraft.RaidCraft;
 import de.raidcraft.combatbar.HotbarUtils;
 import de.raidcraft.combatbar.RCHotbarPlugin;
 import de.raidcraft.combatbar.tables.THotbarHolder;
 import de.raidcraft.util.InventoryUtils;
+import io.ebean.EbeanServer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.bukkit.Material;
