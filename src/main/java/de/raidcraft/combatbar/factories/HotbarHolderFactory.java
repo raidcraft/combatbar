@@ -38,7 +38,7 @@ public class HotbarHolderFactory {
 
     private THotbarHolder getOrCreateDbHotbarHolder(Player player) {
 
-        EbeanServer database = getPlugin().getDatabase();
+        EbeanServer database = getPlugin().getRcDatabase();
 
         THotbarHolder tHotbarHolder = database
                 .find(THotbarHolder.class)
