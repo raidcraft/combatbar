@@ -1,0 +1,3 @@
+entity-packages: de.raidcraft.combatbar
+transactional-packages: de.raidcraft.combatbar
+querybean-packages: de.raidcraft.combatbar

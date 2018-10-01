@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<migration xmlns="http://ebean-orm.github.io/xml/ns/dbmigration">
+    <changeSet type="apply">
+        <createTable name="rc_hotbars" pkName="pk_rc_hotbars">
+            <column name="id" type="integer" primaryKey="true"/>
+            <column name="name" type="varchar(128)"/>
+            <column name="display_name" type="varchar(128)"/>
+            <column name="holder_id" type="integer" references="rc_hotbars_holders.id"
+                    foreignKeyName="fk_rc_hotbars_holder_id" foreignKeyIndex="ix_rc_hotbars_holder_id"/>
+            <column name="position" type="integer" notnull="true"/>
+            <column name="active" type="boolean" defaultValue="false" notnull="true"/>
+        </createTable>
+        <createTable name="rc_hotbars_holders" pkName="pk_rc_hotbars_holders">
+            <column name="id" type="integer" primaryKey="true"/>
+            <column name="player" type="varchar"/>
+            <column name="player_id" type="uuid" unique="uq_rc_hotbars_holders_player_id"/>
+            <column name="active_hotbar" type="integer" notnull="true"/>
+        </createTable>
+        <createTable name="rc_hotbars_slots" pkName="pk_rc_hotbars_slots">
+            <column name="id" type="integer" primaryKey="true"/>
+            <column name="name" type="varchar(128)"/>
+            <column name="item" type="varchar(128)"/>
+            <column name="position" type="integer" notnull="true"/>
+            <column name="hotbar_id" type="integer" references="rc_hotbars.id"
+                    foreignKeyName="fk_rc_hotbars_slots_hotbar_id" foreignKeyIndex="ix_rc_hotbars_slots_hotbar_id"/>
+        </createTable>
+        <createTable name="rc_hotbars_slots_data" pkName="pk_rc_hotbars_slots_data">
+            <column name="id" type="integer" primaryKey="true"/>
+            <column name="slot_id" type="integer" references="rc_hotbars_slots.id"
+                    foreignKeyName="fk_rc_hotbars_slots_data_slot_id"
+                    foreignKeyIndex="ix_rc_hotbars_slots_data_slot_id"/>
+            <column name="data_key" type="varchar"/>
+            <column name="data_value" type="varchar"/>
+        </createTable>
+    </changeSet>
+</migration>

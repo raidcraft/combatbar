@@ -1,6 +1,5 @@
 package de.raidcraft.combatbar.tables;
 
-import io.ebean.annotation.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,11 +19,9 @@ public class THotbarHolder {
 
     private String player;
 
-    @NotNull
     @Column(unique = true)
     private UUID playerId;
 
-    @NotNull
     private int activeHotbar = 0;
 
     @OneToMany(cascade = CascadeType.REMOVE)
