@@ -30,6 +30,8 @@ public class GraveyardSupportManager implements Listener {
     }
 
     public boolean isPlayerAlive(Player player) {
-        return !RaidCraft.getComponent(RCGraveyardsPlugin.class).getGhostManager().isGhost(player);
+        RCGraveyardsPlugin graveyardsPlugin = RaidCraft.getComponent(RCGraveyardsPlugin.class);
+        if (graveyardsPlugin == null || graveyardsPlugin.getGhostManager() == null) return true;
+        return !graveyardsPlugin.getGhostManager().isGhost(player);
     }
 }
