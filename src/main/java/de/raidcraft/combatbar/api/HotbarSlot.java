@@ -225,11 +225,13 @@ public abstract class HotbarSlot {
 
         slot.setName(getName());
         if (isSaveItem()) {
-            ItemStack item = RaidCraft.getUnsafeItem(slot.getItem());
-            if (item != null && !item.isSimilar(getItem())) {
-                RaidCraft.removeStoredItem(slot.getItem());
-            }
-            slot.setItem(RaidCraft.getItemIdString(getItem(), item == null));
+            RaidCraft.getItem(slot.getItem()).ifPresent(itemStack -> {
+                if (itemStack.isSimilar(getItem())) {
+                    RaidCraft.removeStoredItem(slot.getItem());
+                } else {
+                    slot.setItem(RaidCraft.getItemIdString(getItem(), item == null));
+                }
+            });
         }
         slot.setPosition(getIndex());
 
