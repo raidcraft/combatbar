@@ -49,17 +49,11 @@ public class InventoryHotbar extends Hotbar {
 
     @Override
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getSlot() == getHolder().getMenuSlotIndex()) event.setCancelled(true);
+        if (getHolder().isUsingMenuSlot() && event.getSlot() == getHolder().getMenuSlotIndex()) event.setCancelled(true);
     }
 
     @Override
     public void onItemDrop(PlayerDropItemEvent event) {
-        if (getInventory().getHeldItemSlot() == getHolder().getMenuSlotIndex()) event.setCancelled(true);
+        if (getHolder().isUsingMenuSlot() && getInventory().getHeldItemSlot() == getHolder().getMenuSlotIndex()) event.setCancelled(true);
     }
-
-//    @Override
-//    public void save() {
-//        if (!isActive()) return;
-//        super.save();
-//    }
 }

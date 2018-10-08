@@ -134,15 +134,6 @@ public class HotbarManager implements Component {
         return Optional.ofNullable(this.hotbarHolders.get(player.getUniqueId())).flatMap(HotbarHolder::getActiveHotbar);
     }
 
-    public Hotbar getOrCreateHotbar(Player player) {
-        HotbarHolder hotbarHolder = getHotbarHolder(player);
-        return hotbarHolder.getHotbars().stream().findFirst().orElseGet(() -> {
-            Hotbar hotbar = getDefaultHotbarFactory().createNew(hotbarHolder);
-            hotbarHolder.addHotbar(hotbar);
-            return hotbar;
-        });
-    }
-
     public Hotbar getOrCreateHotbar(Player player, Class<? extends Hotbar> hotbarType, boolean activate) {
         HotbarHolder holder = getHotbarHolder(player);
         Hotbar hotbar = holder.getHotbars().stream()
@@ -176,14 +167,8 @@ public class HotbarManager implements Component {
         HotbarHolder holder = getHolderFactory().create(player);
         getPlugin().registerEvents(holder);
         hotbarHolders.put(player.getUniqueId(), holder);
-        if (hotbarMenuActions.size() > 0) holder.setMenuItemAction(hotbarMenuActions.get(0));
+        if (hotbarMenuActions.size() > 0 && plugin.getConfig().useMenuSlot) holder.setMenuItemAction(hotbarMenuActions.get(0));
         holder.enable();
-        for (Hotbar hotbar : holder.getHotbars()) {
-            if (InventoryHotbar.class.isInstance(hotbar)) {
-                return;
-            }
-        }
-        getOrCreateHotbar(player, InventoryHotbar.class);
     }
 
     public void unregisterPlayer(Player player) {

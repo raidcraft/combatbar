@@ -10,9 +10,11 @@ import io.ebean.EbeanServer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -81,6 +83,8 @@ public class Hotbar {
     public final boolean addHotbarSlot(HotbarSlot slot) {
 
         for (int index : this.indicies) {
+            ItemStack item = getInventory().getItem(index);
+            if (item != null && item.getType() != Material.AIR) continue;
             if (this.slots.containsKey(index)) continue;
             setHotbarSlot(index, slot);
             return true;
@@ -99,10 +103,13 @@ public class Hotbar {
      */
     public final Optional<HotbarSlot> setHotbarSlot(int index, HotbarSlot slot) {
         if (!indicies.contains(index)) return Optional.empty();
-        slot.setIndex(index);
-        if (isActive()) slot.attach(this);
+
         Optional<HotbarSlot> result = Optional.ofNullable(this.slots.put(index, slot));
         result.ifPresent(HotbarSlot::detach);
+
+        slot.setIndex(index);
+        if (isActive()) slot.attach(this);
+
         save();
         return result;
     }
@@ -169,10 +176,15 @@ public class Hotbar {
     void deactivate() {
         if (!isActive()) return;
         onDeactivate();
-        getSlots().values().forEach(slot -> slot.onDisable(this));
+        getSlots().values().forEach(slot -> {
+            slot.onDisable(this);
+            getInventory().clear(slot.getIndex());
+        });
         this.active = false;
         save();
-        getIndicies().forEach(index -> getInventory().clear(index));
+        if (isFillEmptySlots()) {
+            getIndicies().forEach(index -> getInventory().clear(index));
+        }
     }
 
     /**
@@ -205,16 +217,14 @@ public class Hotbar {
                     slot.onRightClickInteract(event);
                     break;
             }
-        });
-
-        if (getIndicies().contains(getActiveItemSlot())) {
             event.setCancelled(true);
-        }
+        });
     }
 
     public void onInventoryClick(InventoryClickEvent event) {
         if (!isActive()) return;
-        if (getHolder().isHotbarSlot(event.getSlot())) event.setCancelled(true);
+        if (event.getSlotType() != InventoryType.SlotType.QUICKBAR) return;
+        if (getHolder().isActiveHotbarSlot(event.getSlot())) event.setCancelled(true);
 
         getHotbarSlot(event.getSlot()).ifPresent(slot -> {
 
@@ -238,7 +248,7 @@ public class Hotbar {
 
     public void onItemDrop(PlayerDropItemEvent event) {
         if (!isActive()) return;
-        if (getHolder().isHotbarSlot(getHolder().getHeldItemSlot())) event.setCancelled(true);
+        if (getHolder().isActiveHotbarSlot(getHolder().getHeldItemSlot())) event.setCancelled(true);
     }
 
     public final void fillEmptySlots(ItemStack item) {

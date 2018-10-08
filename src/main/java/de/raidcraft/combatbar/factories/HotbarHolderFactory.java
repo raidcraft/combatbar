@@ -17,7 +17,6 @@ public class HotbarHolderFactory {
 
         HotbarHolder holder = new HotbarHolder(player);
         holder.setDatabaseId(dbEntry.getId());
-        holder.setActiveHotbar(dbEntry.getActiveHotbar());
 
         loadHotbars(dbEntry, holder);
 
@@ -29,9 +28,15 @@ public class HotbarHolderFactory {
             holder.addHotbar(plugin.getHotbarManager().getDefaultHotbarFactory().createNew(holder));
         } else {
             dbEntry.getHotbars().forEach(hotbar -> {
-                plugin.getHotbarManager().getHotbarFactory(hotbar.getName())
-                        .map(factory -> factory.create(hotbar, holder))
-                        .ifPresent(holder::addHotbar);
+                if (hotbar.getId() == dbEntry.getActiveHotbar()) {
+                    plugin.getHotbarManager().getHotbarFactory(hotbar.getName())
+                            .map(factory -> factory.create(hotbar, holder))
+                            .ifPresent(h -> holder.addHotbar(h, true));
+                } else {
+                    plugin.getHotbarManager().getHotbarFactory(hotbar.getName())
+                            .map(factory -> factory.create(hotbar, holder))
+                            .ifPresent(holder::addHotbar);
+                }
             });
         }
     }

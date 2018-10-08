@@ -70,7 +70,13 @@ public class RCHotbarPlugin extends BasePlugin {
 
         @Setting("add-default-hotbar")
         @Comment("Adds a default hotbar to the player if the player has no configured hotbar.")
-        public boolean addDefaultHotbar = true;
+        public boolean addDefaultHotbar = false;
+        @Setting("use-menu-slot")
+        @Comment("Places a menu item in the last hotbar slot.")
+        public boolean useMenuSlot = false;
+        @Setting("allow-hotbar-swapping")
+        @Comment("Set to true if you want to allow players to cycle hotbars by holding shift")
+        public boolean allowHotbarSwapping = false;
 
         public LocalConfiguration(RCHotbarPlugin plugin) {
 

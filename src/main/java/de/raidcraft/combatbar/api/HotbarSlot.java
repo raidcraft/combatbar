@@ -5,6 +5,7 @@ import de.raidcraft.combatbar.RCHotbarPlugin;
 import de.raidcraft.combatbar.tables.THotbar;
 import de.raidcraft.combatbar.tables.THotbarSlot;
 import de.raidcraft.combatbar.tables.THotbarSlotData;
+import de.raidcraft.util.InventoryUtils;
 import io.ebean.EbeanServer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -76,7 +77,9 @@ public abstract class HotbarSlot {
         try {
             this.hotbar = hotbar;
             onAttach(hotbar);
+            ItemStack currentItem = hotbar.getInventory().getItem(getIndex());
             hotbar.getInventory().setItem(getIndex(), getItem());
+            InventoryUtils.addOrDropItems(hotbar.getPlayer(), currentItem);
         } catch (HotbarException e) {
             hotbar.getHolder().getPlayer().sendMessage(ChatColor.RED + "Hotbar Slot " + getIndex() + " deaktiviert:");
             hotbar.getHolder().getPlayer().sendMessage(ChatColor.RED + e.getMessage());
@@ -96,7 +99,7 @@ public abstract class HotbarSlot {
     }
 
     public final void detach() {
-        getHotbar().ifPresent(hotbar -> hotbar.getInventory().setItem(getIndex(), new ItemStack(Material.AIR)));
+        getHotbar().ifPresent(hotbar -> hotbar.getInventory().clear(getIndex()));
         delete();
         this.hotbar = null;
     }

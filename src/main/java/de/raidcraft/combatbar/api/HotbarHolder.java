@@ -70,6 +70,10 @@ public class HotbarHolder implements Listener {
         return getInventory().getHeldItemSlot();
     }
 
+    public boolean isUsingMenuSlot() {
+        return RaidCraft.getComponent(RCHotbarPlugin.class).getConfig().useMenuSlot;
+    }
+
     public final void setActiveHotbar(int index) {
         if (index < 0 || index >= getHotbars().size()) return;
         Hotbar hotbar = getHotbars().get(index);
@@ -118,8 +122,10 @@ public class HotbarHolder implements Listener {
         if (isEnabled()) return;
         this.enabled = true;
         getActiveHotbar().ifPresent(Hotbar::activate);
-        if (!getMenuSlotItem().isSimilar(getInventory().getItem(getMenuSlotIndex()))) {
-            InventoryUtils.setAndDropOrAddItem(getPlayer(), getMenuSlotItem(), getMenuSlotIndex());
+        if (isUsingMenuSlot()) {
+            if (!getMenuSlotItem().isSimilar(getInventory().getItem(getMenuSlotIndex()))) {
+                InventoryUtils.setAndDropOrAddItem(getPlayer(), getMenuSlotItem(), getMenuSlotIndex());
+            }
         }
     }
 
@@ -129,7 +135,9 @@ public class HotbarHolder implements Listener {
         getActiveHotbar().ifPresent(Hotbar::deactivate);
         save();
 
-        getPlayer().getInventory().clear(getMenuSlotIndex());
+        if (isUsingMenuSlot()) {
+            getPlayer().getInventory().clear(getMenuSlotIndex());
+        }
     }
 
     @EventHandler()
@@ -140,7 +148,8 @@ public class HotbarHolder implements Listener {
         if (!event.getPlayer().equals(getPlayer())) return;
 
         // handle hotbar cylcing
-        if (event.getPlayer().isSneaking() && event.getPreviousSlot() == getMenuSlotIndex()) {
+        if (RaidCraft.getComponent(RCHotbarPlugin.class).getConfig().allowHotbarSwapping
+                && event.getPlayer().isSneaking() && event.getPreviousSlot() == getMenuSlotIndex()) {
             if (getHotbars().size() < 2) return;
             getActiveHotbar().ifPresent(Hotbar::deactivate);
             if (event.getNewSlot() < event.getPreviousSlot()) {
@@ -164,7 +173,7 @@ public class HotbarHolder implements Listener {
         if (!isEnabled()) return;
         if (!event.getPlayer().equals(getPlayer())) return;
 
-        if (getHeldItemSlot() == getMenuSlotIndex()) {
+        if (isUsingMenuSlot() && getHeldItemSlot() == getMenuSlotIndex()) {
             event.setCancelled(true);
             switch (event.getAction()) {
                 case LEFT_CLICK_AIR:
@@ -205,20 +214,23 @@ public class HotbarHolder implements Listener {
         getActiveHotbar().ifPresent(hotbar -> hotbar.onItemDrop(event));
     }
 
+    protected boolean isActiveHotbarSlot(int index) {
+        return getActiveHotbar().map(hotbar -> hotbar.getHotbarSlot(index).isPresent())
+                .orElse(isUsingMenuSlot() && index == getMenuSlotIndex());
+    }
+
     protected boolean isHotbarSlot(int index) {
         return getActiveHotbar().filter(hotbar -> hotbar.getIndicies().contains(index)
-                || index == getMenuSlotIndex()).isPresent();
+                || (isUsingMenuSlot() && index == getMenuSlotIndex())).isPresent();
     }
 
     public void save() {
         EbeanServer database = RaidCraft.getDatabase(RCHotbarPlugin.class);
         getDatabaseId().map(id -> database.find(THotbarHolder.class, id))
                 .ifPresent(holder -> {
-                    holder.setActiveHotbar(getActiveHotbarSlot());
+                    getActiveHotbar().map(Hotbar::getDatabaseId).ifPresent(integer -> integer.ifPresent(holder::setActiveHotbar));
                     database.save(holder);
                 });
-
-//        getHotbars().forEach(Hotbar::save);
     }
 
     public void delete() {
