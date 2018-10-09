@@ -8,6 +8,7 @@ import de.raidcraft.util.InventoryUtils;
 import io.ebean.EbeanServer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,6 +19,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -212,6 +214,15 @@ public class HotbarHolder implements Listener {
         if (!event.getPlayer().equals(getPlayer())) return;
 
         getActiveHotbar().ifPresent(hotbar -> hotbar.onItemDrop(event));
+    }
+
+    @EventHandler
+    public void onSwapOffhand(PlayerSwapHandItemsEvent event) {
+
+        if (isActiveHotbarSlot(getHeldItemSlot())) {
+            getPlayer().sendMessage(ChatColor.RED + "Du kannst keine Skills in deine Off-Hand swappen.");
+            event.setCancelled(true);
+        }
     }
 
     protected boolean isActiveHotbarSlot(int index) {
