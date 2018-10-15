@@ -83,7 +83,6 @@ public abstract class HotbarSlot {
         } catch (HotbarException e) {
             hotbar.getHolder().getPlayer().sendMessage(ChatColor.RED + "Hotbar Slot " + getIndex() + " deaktiviert:");
             hotbar.getHolder().getPlayer().sendMessage(ChatColor.RED + e.getMessage());
-            e.printStackTrace();
             hotbar.removeHotbarSlot(getIndex());
         }
     }
