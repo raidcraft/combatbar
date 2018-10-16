@@ -12,19 +12,19 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -214,6 +214,22 @@ public class HotbarHolder implements Listener {
         if (!event.getPlayer().equals(getPlayer())) return;
 
         getActiveHotbar().ifPresent(hotbar -> hotbar.onItemDrop(event));
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onDeath(PlayerDeathEvent event) {
+        if (!isEnabled()) return;
+        if (!event.getEntity().equals(getPlayer())) return;
+
+        getActiveHotbar().ifPresent(Hotbar::deactivate);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onRespawn(PlayerRespawnEvent event) {
+        if (!isEnabled()) return;
+        if (!event.getPlayer().equals(getPlayer())) return;
+
+        getActiveHotbar().ifPresent(Hotbar::activate);
     }
 
     @EventHandler
