@@ -7,3 +7,4 @@ website: http://www.raid-craft.de
 depend: [RaidCraft-API]
 softdepend: [RCGraveyards]
 database: false
+api-version: 1.13
