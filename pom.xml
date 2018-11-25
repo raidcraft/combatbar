@@ -22,13 +22,16 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>combatbar</artifactId>
     <packaging>jar</packaging>
-    <version>1.13.2-SNAPSHOT</version>
     <name>RCCombatBar</name>
+
+    <properties>
+        <version>1.13.2</version>
+    </properties>
 
     <parent>
         <groupId>de.faldoria</groupId>
         <artifactId>FaldoriaMasterPom</artifactId>
-        <version>1.13.2-SNAPSHOT</version>
+        <version>1.13.3+b21</version>
     </parent>
 
     <repositories>
@@ -42,7 +45,7 @@
         <dependency>
             <groupId>de.faldoria</groupId>
             <artifactId>raidcraft-api</artifactId>
-            <version>1.13.2-SNAPSHOT</version>
+            <version>1.13.3+b212</version>
         </dependency>
         <dependency>
             <groupId>de.faldoria</groupId>

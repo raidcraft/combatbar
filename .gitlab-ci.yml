@@ -1,8 +1,8 @@
 image: maven:latest
 
 variables:
-  MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
-  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -s .m2/settings.xml -DbuildNumber=b$CI_PIPELINE_IID"
+  MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
 
 cache:
   paths:
@@ -29,4 +29,3 @@ deploy:
     name: Plugin
     paths:
     - target/*.jar
-    expire_in: 1 week
