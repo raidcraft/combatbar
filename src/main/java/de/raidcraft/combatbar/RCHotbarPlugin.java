@@ -13,6 +13,7 @@ import de.raidcraft.combatbar.tables.THotbarSlotData;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +42,7 @@ public class RCHotbarPlugin extends BasePlugin {
         RaidCraft.registerComponent(HotbarManager.class, hotbarManager);
 
         registerEvents(new HotbarListener(this));
-        if (Bukkit.getPluginManager().getPlugin("RCGraveyards") != null) {
+        if (isRCGraveyardsEnabled()) {
             graveyardSupportManager = new GraveyardSupportManager(this);
         }
     }
@@ -53,7 +54,12 @@ public class RCHotbarPlugin extends BasePlugin {
     }
 
     public boolean canEnableHotbarHolder(Player player) {
-        return graveyardSupportManager == null || graveyardSupportManager.isPlayerAlive(player);
+        return !isRCGraveyardsEnabled() || (graveyardSupportManager != null && graveyardSupportManager.isPlayerAlive(player));
+    }
+
+    private boolean isRCGraveyardsEnabled() {
+        Plugin rcGraveyards = Bukkit.getPluginManager().getPlugin("RCGraveyards");
+        return rcGraveyards != null && rcGraveyards.isEnabled();
     }
 
     @Override
